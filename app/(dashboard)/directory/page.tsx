@@ -14,11 +14,21 @@ export default function DirectoryPage() {
   const [locationFilter, setLocationFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
+  const [error, setError] = useState('');
+
   useEffect(() => {
     fetch('/api/alumni')
       .then((r) => r.json())
-      .then((data) => { setAlumni(data); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setAlumni(data);
+        } else {
+          console.error('Alumni API error:', data);
+          setError(data?.detail || data?.error || 'Failed to load alumni');
+        }
+        setLoading(false);
+      })
+      .catch((e) => { setError(String(e)); setLoading(false); });
   }, []);
 
   // Derived filter options
@@ -140,6 +150,11 @@ export default function DirectoryPage() {
       )}
 
       {/* Grid */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-4 text-sm">
+          <strong>Error loading alumni:</strong> {error}
+        </div>
+      )}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => (

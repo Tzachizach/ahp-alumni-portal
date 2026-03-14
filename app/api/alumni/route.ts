@@ -11,7 +11,7 @@ export async function GET() {
     const alumni = await getAllAlumni();
     return NextResponse.json(alumni);
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: 'Failed to fetch alumni' }, { status: 500 });
+    console.error('[Alumni API Error]', err);
+    return NextResponse.json({ error: 'Failed to fetch alumni', detail: String(err) }, { status: 500 });
   }
 }
