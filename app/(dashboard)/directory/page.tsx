@@ -23,19 +23,19 @@ export default function DirectoryPage() {
 
   // Derived filter options
   const years = useMemo(
-    () => [...new Set(alumni.map((a) => a.graduationYear).filter(Boolean))].sort((a, b) => Number(b) - Number(a)),
+    () => Array.from(new Set(alumni.map((a) => a.graduationYear).filter(Boolean))).sort((a, b) => Number(b) - Number(a)),
     [alumni]
   );
   const networkingCategories = useMemo(
-    () => [...new Set(alumni.map((a) => a.networkingCategory).filter(Boolean))].sort(),
+    () => Array.from(new Set(alumni.map((a) => a.networkingCategory).filter(Boolean))).sort(),
     [alumni]
   );
   const interestGroups = useMemo(
-    () => [...new Set(alumni.flatMap((a) => a.summarizedInterestGroup.split(',').map((s) => s.trim())).filter(Boolean))].sort(),
+    () => Array.from(new Set(alumni.flatMap((a) => a.summarizedInterestGroup.split(',').map((s) => s.trim())).filter(Boolean))).sort(),
     [alumni]
   );
   const locations = useMemo(
-    () => [...new Set(alumni.map((a) => a.location).filter(Boolean))].sort(),
+    () => Array.from(new Set(alumni.map((a) => a.location).filter(Boolean))).sort(),
     [alumni]
   );
 
