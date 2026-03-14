@@ -44,23 +44,8 @@ function mapAlumni(record: Airtable.Record<Airtable.FieldSet>): Alumni {
 
 // ─── Alumni CRUD ──────────────────────────────────────────────────────────────
 export async function getAllAlumni(): Promise<Alumni[]> {
-  const records = await base('Alumni')
-    .select({
-      fields: [
-        'Full Name', 'Profile Photo', 'Email Address', 'Phone Number',
-        'Graduation Year', 'Degree Earned', 'Current Job Title', 'Current Employer',
-        'Previous Job Title', 'Previous employer', 'Location', 'LinkedIn',
-        'Career Milestones', 'Summary of Career Progression',
-        'Professional achievements and accomplishments',
-        'Professional areas of expertise', 'Networking Preferences',
-        'Networking Category', 'Favorite Professor/Young Memory',
-        'Favorite accounting honors memory', 'Personal achievements beyond work',
-        'Summarized Interest Group', 'Areas of interest for engagement',
-        'Advice for current students', 'Alumni Events',
-      ],
-    })
-    .all();
-
+  // Fetch all fields — avoids errors if some fields don't exist in the base
+  const records = await base('Alumni').select().all();
   return records.map(mapAlumni);
 }
 
