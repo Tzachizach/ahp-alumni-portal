@@ -6,8 +6,9 @@ import {
 } from '@/lib/airtable';
 import bcrypt from 'bcryptjs';
 
-function requireAdmin(session: ReturnType<typeof getServerSession> extends Promise<infer T> ? T : never) {
-  return (session?.user as { role?: string })?.role === 'admin';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function requireAdmin(session: any) {
+  return session?.user?.role === 'admin';
 }
 
 export async function GET() {
