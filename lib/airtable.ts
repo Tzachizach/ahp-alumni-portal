@@ -116,7 +116,6 @@ export interface AuthRecord {
 
 export async function getAuthByEmail(email: string): Promise<AuthRecord | null> {
   try {
-    console.log('[Auth] Looking up email:', email);
     const records = await base('Auth')
       .select({
         filterByFormula: `LOWER({Email}) = '${email.toLowerCase()}'`,
@@ -124,9 +123,7 @@ export async function getAuthByEmail(email: string): Promise<AuthRecord | null> 
       })
       .all();
 
-    console.log('[Auth] Records found:', records.length);
     if (records.length === 0) {
-      console.log('[Auth] No user found for email:', email);
       return null;
     }
     const f = records[0].fields as Record<string, unknown>;
