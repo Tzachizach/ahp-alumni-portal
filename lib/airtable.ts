@@ -5,6 +5,13 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID!
 );
 
+// ─── Safely convert any Airtable field value to a string ─────────────────────
+function str(value: unknown): string {
+  if (!value) return '';
+  if (Array.isArray(value)) return value.join(', ');
+  return String(value);
+}
+
 // ─── Helper: map raw Airtable record → Alumni ────────────────────────────────
 function mapAlumni(record: Airtable.Record<Airtable.FieldSet>): Alumni {
   const f = record.fields as Record<string, unknown>;
@@ -14,31 +21,31 @@ function mapAlumni(record: Airtable.Record<Airtable.FieldSet>): Alumni {
 
   return {
     id: record.id,
-    fullName: (f['Full Name'] as string) || '',
+    fullName: str(f['Full Name']),
     profilePhoto: photo,
-    email: (f['Email Address'] as string) || '',
-    phone: (f['Phone Number'] as string) || '',
+    email: str(f['Email Address']),
+    phone: str(f['Phone Number']),
     graduationYear: f['Graduation Year'] ? String(f['Graduation Year']) : '',
-    degreeEarned: (f['Degree Earned'] as string) || '',
-    currentJobTitle: (f['Current Job Title'] as string) || '',
-    currentEmployer: (f['Current Employer'] as string) || '',
-    previousJobTitle: (f['Previous Job Title'] as string) || '',
-    previousEmployer: (f['Previous employer'] as string) || '',
-    location: (f['Location'] as string) || '',
-    linkedIn: (f['LinkedIn'] as string) || '',
-    careerMilestones: (f['Career Milestones'] as string) || '',
-    summaryOfCareerProgression: (f['Summary of Career Progression'] as string) || '',
-    professionalAchievements: (f['Professional achievements and accomplishments'] as string) || '',
-    professionalAreasOfExpertise: (f['Professional areas of expertise'] as string) || '',
-    networkingPreferences: (f['Networking Preferences'] as string) || '',
-    networkingCategory: (f['Networking Category'] as string) || '',
-    favoriteMemory: (f['Favorite Professor/Young Memory'] as string) || '',
-    favoriteAHPMemory: (f['Favorite accounting honors memory'] as string) || '',
-    personalAchievements: (f['Personal achievements beyond work'] as string) || '',
-    summarizedInterestGroup: (f['Summarized Interest Group'] as string) || '',
-    areasOfInterestForEngagement: (f['Areas of interest for engagement'] as string) || '',
-    adviceForCurrentStudents: (f['Advice for current students'] as string) || '',
-    alumniEvents: (f['Alumni Events'] as string[]) || [],
+    degreeEarned: str(f['Degree Earned']),
+    currentJobTitle: str(f['Current Job Title']),
+    currentEmployer: str(f['Current Employer']),
+    previousJobTitle: str(f['Previous Job Title']),
+    previousEmployer: str(f['Previous employer']),
+    location: str(f['Location']),
+    linkedIn: str(f['LinkedIn']),
+    careerMilestones: str(f['Career Milestones']),
+    summaryOfCareerProgression: str(f['Summary of Career Progression']),
+    professionalAchievements: str(f['Professional achievements and accomplishments']),
+    professionalAreasOfExpertise: str(f['Professional areas of expertise']),
+    networkingPreferences: str(f['Networking Preferences']),
+    networkingCategory: str(f['Networking Category']),
+    favoriteMemory: str(f['Favorite Professor/Young Memory']),
+    favoriteAHPMemory: str(f['Favorite accounting honors memory']),
+    personalAchievements: str(f['Personal achievements beyond work']),
+    summarizedInterestGroup: str(f['Summarized Interest Group']),
+    areasOfInterestForEngagement: str(f['Areas of interest for engagement']),
+    adviceForCurrentStudents: str(f['Advice for current students']),
+    alumniEvents: Array.isArray(f['Alumni Events']) ? f['Alumni Events'] as string[] : [],
   };
 }
 
