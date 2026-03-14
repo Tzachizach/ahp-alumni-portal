@@ -124,14 +124,19 @@ export interface AuthRecord {
 
 export async function getAuthByEmail(email: string): Promise<AuthRecord | null> {
   try {
+    console.log('[Auth] Looking up email:', email);
     const records = await base('Auth')
       .select({
-        filterByFormula: `{Email} = '${email}'`,
+        filterByFormula: `LOWER({Email}) = '${email.toLowerCase()}'`,
         maxRecords: 1,
       })
       .all();
 
-    if (records.length === 0) return null;
+    console.log('[Auth] Records found:', records.length);
+    if (records.length === 0) {
+      console.log('[Auth] No user found for email:', email);
+      return null;
+    }
     const f = records[0].fields as Record<string, unknown>;
     return {
       id: records[0].id,
@@ -142,7 +147,8 @@ export async function getAuthByEmail(email: string): Promise<AuthRecord | null> 
       name: (f['Name'] as string) || '',
       mustChangePassword: (f['Must Change Password'] as boolean) || false,
     };
-  } catch {
+  } catch (err) {
+    console.error('[Auth] Error looking up user:', err);
     return null;
   }
 }
