@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: Inter, system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-scarlet text-white px-4 py-2 rounded-lg font-semibold hover:bg-scarlet-dark transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-white text-scarlet border-2 border-scarlet px-4 py-2 rounded-lg font-semibold hover:bg-scarlet-light transition-colors duration-200;
+  }
+  .btn-ghost {
+    @apply text-ohio-gray hover:text-scarlet hover:bg-ohio-gray-light px-4 py-2 rounded-lg transition-colors duration-200;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-ohio-gray-medium p-6;
+  }
+  .input {
+    @apply w-full border border-ohio-gray-medium rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-scarlet focus:border-transparent;
+  }
+  .label {
+    @apply block text-sm font-medium text-ohio-gray-dark mb-1;
+  }
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+}
