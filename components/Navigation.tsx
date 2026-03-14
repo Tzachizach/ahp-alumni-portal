@@ -3,8 +3,8 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Users, MessageCircle, Star, Calendar, LayoutDashboard,
-  LogOut, Menu, X, Shield,
+  Users, MessageCircle, Star, Calendar,
+  LogOut, Menu, X, Shield, Lock,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -81,6 +81,14 @@ export default function Navigation() {
             <p className="text-sm font-medium text-ohio-gray-dark truncate">{session?.user?.name}</p>
             <p className="text-xs text-ohio-gray truncate">{session?.user?.email}</p>
           </div>
+        </Link>
+        <Link
+          href="/profile/change-password"
+          onClick={() => setMobileOpen(false)}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-ohio-gray hover:bg-ohio-gray-light hover:text-ohio-gray-dark transition-colors"
+        >
+          <Lock size={18} />
+          Change Password
         </Link>
         <button
           onClick={() => signOut({ callbackUrl: '/login' })}
