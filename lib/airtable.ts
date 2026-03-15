@@ -31,9 +31,11 @@ function mapAlumni(record: Airtable.Record<Airtable.FieldSet>): Alumni {
     currentEmployer: str(f['Current Employer']),
     previousJobTitle: str(f['Previous Job Title (s)']),
     previousEmployer: str(f['Previous Employer (s)']),
-    location: (typeof f['Standardized Location'] === 'string' && f['Standardized Location'].trim())
-      ? f['Standardized Location'].trim()
-      : str(f['Location']),
+    location: (() => {
+      const sl = f['Standardized Location'] as { value?: string } | undefined;
+      const standardized = sl?.value?.trim();
+      return standardized || str(f['Location']);
+    })(),
     linkedIn: str(f['LinkedIn']),
     careerMilestones: str(f['Career Milestones']),
     summaryOfCareerProgression: str(f['Summary of Career Progression (AI)']),
