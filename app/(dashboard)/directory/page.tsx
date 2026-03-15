@@ -19,6 +19,14 @@ export default function DirectoryPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const year = searchParams.get('year') || '';
+    const location = searchParams.get('location') || '';
+    setYearFilter(year);
+    setLocationFilter(location);
+    if (year || location) setShowFilters(true);
+  }, [searchParams]);
+
+  useEffect(() => {
     fetch('/api/alumni')
       .then((r) => r.json())
       .then((data) => {
