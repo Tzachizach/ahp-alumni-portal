@@ -165,10 +165,11 @@ export default function ProfilePage() {
       {/* Content grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Career */}
-        {(alumni.currentJobTitle || alumni.previousJobTitle || alumni.summaryOfCareerProgression || alumni.careerMilestones) && (
+        {(alumni.currentJobTitle || alumni.currentEmployer || alumni.previousJobTitle || alumni.previousEmployer || alumni.summaryOfCareerProgression || alumni.careerMilestones) && (
           <Section title="Career" icon={Briefcase}>
             <Field label="Current Role" value={[alumni.currentJobTitle, alumni.currentEmployer].filter(Boolean).join(' at ')} />
-            <Field label="Previous Role" value={[alumni.previousJobTitle, alumni.previousEmployer].filter(Boolean).join(' at ')} />
+            <Field label="Previous Job Title" value={alumni.previousJobTitle} />
+            <Field label="Previous Employer" value={alumni.previousEmployer} />
             <Field label="Career Summary" value={alumni.summaryOfCareerProgression} />
             <Field label="Career Milestones" value={alumni.careerMilestones} />
           </Section>
