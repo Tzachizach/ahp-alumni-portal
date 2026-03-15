@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Alumni } from '@/lib/types';
 import { MapPin, Briefcase, GraduationCap } from 'lucide-react';
 
 export default function AlumniCard({ alumni }: { alumni: Alumni }) {
+  const router = useRouter();
   return (
     <Link href={`/profile/${alumni.id}`}>
       <div className="card hover:shadow-md hover:border-scarlet transition-all duration-200 cursor-pointer h-full flex flex-col">
@@ -29,9 +31,12 @@ export default function AlumniCard({ alumni }: { alumni: Alumni }) {
               {alumni.fullName}
             </h3>
             {alumni.graduationYear && (
-              <span className="badge bg-scarlet-light text-scarlet mt-1">
+              <button
+                onClick={(e) => { e.preventDefault(); router.push(`/directory?year=${alumni.graduationYear}`); }}
+                className="badge bg-scarlet-light text-scarlet mt-1 hover:bg-scarlet hover:text-white transition-colors cursor-pointer"
+              >
                 Class of {alumni.graduationYear}
-              </span>
+              </button>
             )}
           </div>
         </div>

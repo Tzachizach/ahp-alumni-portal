@@ -88,7 +88,9 @@ export default function ProfilePage() {
               <div>
                 <h1 className="text-2xl font-bold text-ohio-gray-dark">{alumni.fullName}</h1>
                 {alumni.graduationYear && (
-                  <span className="badge bg-scarlet text-white mt-1">Class of {alumni.graduationYear}</span>
+                  <Link href={`/directory?year=${alumni.graduationYear}`} className="badge bg-scarlet text-white mt-1 hover:bg-scarlet/80 transition-colors">
+                    Class of {alumni.graduationYear}
+                  </Link>
                 )}
               </div>
               <div className="flex gap-2 flex-wrap">

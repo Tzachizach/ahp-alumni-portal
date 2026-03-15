@@ -1,18 +1,20 @@
 'use client';
 import { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AlumniCard from '@/components/AlumniCard';
 import { Alumni } from '@/lib/types';
 import { Search, Filter, X } from 'lucide-react';
 
 export default function DirectoryPage() {
+  const searchParams = useSearchParams();
   const [alumni, setAlumni] = useState<Alumni[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [yearFilter, setYearFilter] = useState('');
+  const [yearFilter, setYearFilter] = useState(searchParams.get('year') || '');
   const [networkingFilter, setNetworkingFilter] = useState('');
   const [interestFilter, setInterestFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(!!searchParams.get('year'));
 
   const [error, setError] = useState('');
 
