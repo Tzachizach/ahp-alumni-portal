@@ -13,5 +13,13 @@ export async function GET() {
   if (records.length === 0) return NextResponse.json({ fields: [] });
 
   const fieldNames = Object.keys(records[0].fields).sort();
-  return NextResponse.json({ fieldNames });
+  const f = records[0].fields as Record<string, unknown>;
+  const locationDebug = {
+    'Location value': f['Location'],
+    'Location type': typeof f['Location'],
+    'Standardized Location value': f['Standardized Location'],
+    'Standardized Location type': typeof f['Standardized Location'],
+    'Standardized Location JSON': JSON.stringify(f['Standardized Location']),
+  };
+  return NextResponse.json({ fieldNames, locationDebug });
 }
