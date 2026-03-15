@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Users, MessageCircle, Star, Calendar,
-  LogOut, Menu, X, Shield, Lock,
+  LogOut, Menu, X, Shield, Lock, Heart,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -13,6 +13,7 @@ const navItems = [
   { href: '/messages', label: 'Messages', icon: MessageCircle },
   { href: '/groups', label: 'Interest Groups', icon: Star },
   { href: '/events', label: 'Events', icon: Calendar },
+  { href: '/professor-young', label: 'Prof. Young Memories', icon: Heart },
 ];
 
 export default function Navigation() {
