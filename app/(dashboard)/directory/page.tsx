@@ -13,8 +13,8 @@ export default function DirectoryPage() {
   const [yearFilter, setYearFilter] = useState(searchParams.get('year') || '');
   const [networkingFilter, setNetworkingFilter] = useState('');
   const [interestFilter, setInterestFilter] = useState('');
-  const [locationFilter, setLocationFilter] = useState('');
-  const [showFilters, setShowFilters] = useState(!!searchParams.get('year'));
+  const [locationFilter, setLocationFilter] = useState(searchParams.get('location') || '');
+  const [showFilters, setShowFilters] = useState(!!(searchParams.get('year') || searchParams.get('location')));
 
   const [error, setError] = useState('');
 

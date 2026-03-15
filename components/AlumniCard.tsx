@@ -52,10 +52,13 @@ export default function AlumniCard({ alumni }: { alumni: Alumni }) {
             </div>
           )}
           {alumni.location && (
-            <div className="flex items-center gap-2 text-sm text-ohio-gray">
+            <button
+              onClick={(e) => { e.preventDefault(); router.push(`/directory?location=${encodeURIComponent(alumni.location)}`); }}
+              className="flex items-center gap-2 text-sm text-ohio-gray hover:text-scarlet transition-colors text-left"
+            >
               <MapPin size={14} className="flex-shrink-0 text-scarlet" />
               <span className="truncate">{alumni.location}</span>
-            </div>
+            </button>
           )}
           {alumni.degreeEarned && (
             <div className="flex items-center gap-2 text-sm text-ohio-gray">
