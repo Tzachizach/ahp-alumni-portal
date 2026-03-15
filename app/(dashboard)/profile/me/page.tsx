@@ -18,7 +18,7 @@ type EditableFields = {
   'Professional achievements and accomplishments': string;
   'Professional areas of expertise': string;
   'Networking Preferences': string;
-  'Favorite Professor/Young Memory': string;
+  'Favorite Professor Young Memory': string;
   'Favorite accounting honors memory': string;
   'Personal achievements beyond work': string;
   'Summarized Interest Group': string;
@@ -53,7 +53,7 @@ export default function MyProfilePage() {
           'Professional achievements and accomplishments': data.professionalAchievements,
           'Professional areas of expertise': data.professionalAreasOfExpertise,
           'Networking Preferences': data.networkingPreferences,
-          'Favorite Professor/Young Memory': data.favoriteMemory,
+          'Favorite Professor Young Memory': data.favoriteMemory,
           'Favorite accounting honors memory': data.favoriteAHPMemory,
           'Personal achievements beyond work': data.personalAchievements,
           'Summarized Interest Group': data.summarizedInterestGroup,
@@ -190,7 +190,7 @@ export default function MyProfilePage() {
         <div className="card">
           <h2 className="font-bold text-ohio-gray-dark mb-4">Personal</h2>
           <div className="space-y-4">
-            <Textarea label="Favorite Professor / Young Memory" field="Favorite Professor/Young Memory" rows={2} />
+            <Textarea label="Favorite Professor / Young Memory" field="Favorite Professor Young Memory" rows={2} />
             <Textarea label="Favorite AHP Memory" field="Favorite accounting honors memory" rows={2} />
             <Textarea label="Personal Achievements Beyond Work" field="Personal achievements beyond work" rows={2} />
             <Textarea label="Advice for Current Students" field="Advice for current students" rows={3} />

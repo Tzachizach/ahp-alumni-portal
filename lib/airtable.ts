@@ -39,7 +39,7 @@ function mapAlumni(record: Airtable.Record<Airtable.FieldSet>): Alumni {
     professionalAreasOfExpertise: str(f['Professional areas of expertise']),
     networkingPreferences: str(f['Networking Preferences']),
     networkingCategory: str(f['Networking Category']),
-    favoriteMemory: str(f['Favorite Professor/Young Memory']),
+    favoriteMemory: str(f['Favorite Professor Young Memory']),
     favoriteAHPMemory: str(f['Favorite accounting honors memory']),
     personalAchievements: str(f['Personal achievements beyond work']),
     summarizedInterestGroup: str(f['Summarized Interest Group']),
@@ -91,7 +91,7 @@ export async function updateAlumni(
     'Professional achievements and accomplishments': string;
     'Professional areas of expertise': string;
     'Networking Preferences': string;
-    'Favorite Professor/Young Memory': string;
+    'Favorite Professor Young Memory': string;
     'Favorite accounting honors memory': string;
     'Personal achievements beyond work': string;
     'Summarized Interest Group': string;
