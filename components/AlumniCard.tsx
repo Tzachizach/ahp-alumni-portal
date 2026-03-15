@@ -46,6 +46,14 @@ export default function AlumniCard({ alumni }: { alumni: Alumni }) {
               </span>
             </div>
           )}
+          {(alumni.previousJobTitle || alumni.previousEmployer) && (
+            <div className="flex items-start gap-2 text-sm text-ohio-gray">
+              <Briefcase size={14} className="flex-shrink-0 mt-0.5 text-ohio-gray-medium" />
+              <span className="truncate italic">
+                {[alumni.previousJobTitle, alumni.previousEmployer].filter(Boolean).join(' · ')}
+              </span>
+            </div>
+          )}
           {alumni.location && (
             <div className="flex items-center gap-2 text-sm text-ohio-gray">
               <MapPin size={14} className="flex-shrink-0 text-scarlet" />
