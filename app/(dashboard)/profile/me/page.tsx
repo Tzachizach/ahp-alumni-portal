@@ -12,18 +12,18 @@ type EditableFields = {
   'LinkedIn': string;
   'Current Job Title': string;
   'Current Employer': string;
-  'Previous Job Title': string;
-  'Previous employer': string;
-  'Summary of Career Progression': string;
+  'Previous Job Title (s)': string;
+  'Previous Employer (s)': string;
+  'Summary of Career Progression (AI)': string;
   'Professional achievements and accomplishments': string;
   'Professional areas of expertise': string;
   'Networking Preferences': string;
   'Favorite Professor Young Memory': string;
-  'Favorite accounting honors memory': string;
-  'Personal achievements beyond work': string;
+  'Favorite Accounting Honors Memory': string;
+  'Personal Achievements Beyond Work': string;
   'Summarized Interest Group': string;
-  'Areas of interest for engagement': string;
-  'Advice for current students': string;
+  'Areas of Interest for Engagement': string;
+  'Advice for Current Students': string;
 };
 
 export default function MyProfilePage() {
@@ -47,18 +47,18 @@ export default function MyProfilePage() {
           'LinkedIn': data.linkedIn,
           'Current Job Title': data.currentJobTitle,
           'Current Employer': data.currentEmployer,
-          'Previous Job Title': data.previousJobTitle,
-          'Previous employer': data.previousEmployer,
-          'Summary of Career Progression': data.summaryOfCareerProgression,
+          'Previous Job Title (s)': data.previousJobTitle,
+          'Previous Employer (s)': data.previousEmployer,
+          'Summary of Career Progression (AI)': data.summaryOfCareerProgression,
           'Professional achievements and accomplishments': data.professionalAchievements,
           'Professional areas of expertise': data.professionalAreasOfExpertise,
           'Networking Preferences': data.networkingPreferences,
           'Favorite Professor Young Memory': data.favoriteMemory,
-          'Favorite accounting honors memory': data.favoriteAHPMemory,
-          'Personal achievements beyond work': data.personalAchievements,
+          'Favorite Accounting Honors Memory': data.favoriteAHPMemory,
+          'Personal Achievements Beyond Work': data.personalAchievements,
           'Summarized Interest Group': data.summarizedInterestGroup,
-          'Areas of interest for engagement': data.areasOfInterestForEngagement,
-          'Advice for current students': data.adviceForCurrentStudents,
+          'Areas of Interest for Engagement': data.areasOfInterestForEngagement,
+          'Advice for Current Students': data.adviceForCurrentStudents,
         });
         setLoading(false);
       })
@@ -166,11 +166,11 @@ export default function MyProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label="Current Job Title" field="Current Job Title" />
             <Input label="Current Employer" field="Current Employer" />
-            <Input label="Previous Job Title" field="Previous Job Title" />
-            <Input label="Previous Employer" field="Previous employer" />
+            <Input label="Previous Job Title" field="Previous Job Title (s)" />
+            <Input label="Previous Employer" field="Previous Employer (s)" />
           </div>
           <div className="mt-4 space-y-4">
-            <Textarea label="Career Summary" field="Summary of Career Progression" rows={4} />
+            <Textarea label="Career Summary" field="Summary of Career Progression (AI)" rows={4} />
             <Textarea label="Professional Achievements" field="Professional achievements and accomplishments" rows={3} />
             <Textarea label="Areas of Expertise" field="Professional areas of expertise" rows={2} />
           </div>
@@ -181,7 +181,7 @@ export default function MyProfilePage() {
           <h2 className="font-bold text-ohio-gray-dark mb-4">Networking</h2>
           <div className="space-y-4">
             <Textarea label="Networking Preferences (what you're open to)" field="Networking Preferences" rows={2} />
-            <Textarea label="Areas of Interest for Engagement" field="Areas of interest for engagement" rows={2} />
+            <Textarea label="Areas of Interest for Engagement" field="Areas of Interest for Engagement" rows={2} />
             <Input label="Interest Group Tags (comma-separated)" field="Summarized Interest Group" />
           </div>
         </div>
@@ -191,9 +191,9 @@ export default function MyProfilePage() {
           <h2 className="font-bold text-ohio-gray-dark mb-4">Personal</h2>
           <div className="space-y-4">
             <Textarea label="Favorite Professor / Young Memory" field="Favorite Professor Young Memory" rows={2} />
-            <Textarea label="Favorite AHP Memory" field="Favorite accounting honors memory" rows={2} />
-            <Textarea label="Personal Achievements Beyond Work" field="Personal achievements beyond work" rows={2} />
-            <Textarea label="Advice for Current Students" field="Advice for current students" rows={3} />
+            <Textarea label="Favorite AHP Memory" field="Favorite Accounting Honors Memory" rows={2} />
+            <Textarea label="Personal Achievements Beyond Work" field="Personal Achievements Beyond Work" rows={2} />
+            <Textarea label="Advice for Current Students" field="Advice for Current Students" rows={3} />
           </div>
         </div>
 

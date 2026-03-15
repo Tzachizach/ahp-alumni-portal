@@ -29,22 +29,22 @@ function mapAlumni(record: Airtable.Record<Airtable.FieldSet>): Alumni {
     degreeEarned: str(f['Degree Earned']),
     currentJobTitle: str(f['Current Job Title']),
     currentEmployer: str(f['Current Employer']),
-    previousJobTitle: str(f['Previous Job Title']),
-    previousEmployer: str(f['Previous employer']),
+    previousJobTitle: str(f['Previous Job Title (s)']),
+    previousEmployer: str(f['Previous Employer (s)']),
     location: str(f['Location']),
     linkedIn: str(f['LinkedIn']),
     careerMilestones: str(f['Career Milestones']),
-    summaryOfCareerProgression: str(f['Summary of Career Progression']),
+    summaryOfCareerProgression: str(f['Summary of Career Progression (AI)']),
     professionalAchievements: str(f['Professional achievements and accomplishments']),
     professionalAreasOfExpertise: str(f['Professional areas of expertise']),
     networkingPreferences: str(f['Networking Preferences']),
-    networkingCategory: str(f['Networking Category']),
+    networkingCategory: str(f['Networking Category (AI)']),
     favoriteMemory: str(f['Favorite Professor Young Memory']),
-    favoriteAHPMemory: str(f['Favorite accounting honors memory']),
-    personalAchievements: str(f['Personal achievements beyond work']),
+    favoriteAHPMemory: str(f['Favorite Accounting Honors Memory']),
+    personalAchievements: str(f['Personal Achievements Beyond Work']),
     summarizedInterestGroup: str(f['Summarized Interest Group']),
-    areasOfInterestForEngagement: str(f['Areas of interest for engagement']),
-    adviceForCurrentStudents: str(f['Advice for current students']),
+    areasOfInterestForEngagement: str(f['Areas of Interest for Engagement']),
+    adviceForCurrentStudents: str(f['Advice for Current Students']),
     alumniEvents: Array.isArray(f['Alumni Events']) ? f['Alumni Events'] as string[] : [],
   };
 }
@@ -85,18 +85,18 @@ export async function updateAlumni(
     'LinkedIn': string;
     'Current Job Title': string;
     'Current Employer': string;
-    'Previous Job Title': string;
-    'Previous employer': string;
-    'Summary of Career Progression': string;
+    'Previous Job Title (s)': string;
+    'Previous Employer (s)': string;
+    'Summary of Career Progression (AI)': string;
     'Professional achievements and accomplishments': string;
     'Professional areas of expertise': string;
     'Networking Preferences': string;
     'Favorite Professor Young Memory': string;
-    'Favorite accounting honors memory': string;
-    'Personal achievements beyond work': string;
+    'Favorite Accounting Honors Memory': string;
+    'Personal Achievements Beyond Work': string;
     'Summarized Interest Group': string;
-    'Areas of interest for engagement': string;
-    'Advice for current students': string;
+    'Areas of Interest for Engagement': string;
+    'Advice for Current Students': string;
   }>
 ): Promise<Alumni> {
   const record = await base('Alumni').update(recordId, fields);
