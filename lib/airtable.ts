@@ -9,6 +9,11 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
 function str(value: unknown): string {
   if (!value) return '';
   if (Array.isArray(value)) return value.join(', ');
+  // Handle Airtable AI agent fields which return { state, value, isStale }
+  if (typeof value === 'object' && value !== null && 'value' in value) {
+    const aiVal = (value as { value?: string }).value;
+    return aiVal?.trim() || '';
+  }
   return String(value);
 }
 

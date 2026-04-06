@@ -76,7 +76,7 @@ export default function ProfilePage() {
           {/* Photo */}
           <div className="w-28 h-28 rounded-full overflow-hidden bg-ohio-gray-medium flex-shrink-0 flex items-center justify-center border-4 border-scarlet">
             {alumni.profilePhoto ? (
-              <Image src={alumni.profilePhoto} alt={alumni.fullName} width={112} height={112} className="object-cover w-full h-full" />
+              <Image src={alumni.profilePhoto} alt={alumni.fullName} width={112} height={112} className="object-cover object-top w-full h-full" />
             ) : (
               <span className="text-4xl font-bold text-ohio-gray">{alumni.fullName.charAt(0)}</span>
             )}

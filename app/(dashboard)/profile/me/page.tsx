@@ -133,7 +133,7 @@ export default function MyProfilePage() {
       <div className="card mb-6 flex items-center gap-5">
         <div className="w-20 h-20 rounded-full overflow-hidden bg-ohio-gray-medium flex-shrink-0 flex items-center justify-center border-4 border-scarlet">
           {alumni?.profilePhoto ? (
-            <Image src={alumni.profilePhoto} alt={alumni.fullName} width={80} height={80} className="object-cover w-full h-full" />
+            <Image src={alumni.profilePhoto} alt={alumni.fullName} width={80} height={80} className="object-cover object-top w-full h-full" />
           ) : (
             <User size={32} className="text-ohio-gray" />
           )}

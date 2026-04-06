@@ -11,17 +11,17 @@ export default function AlumniCard({ alumni }: { alumni: Alumni }) {
       <div className="card hover:shadow-md hover:border-scarlet transition-all duration-200 cursor-pointer h-full flex flex-col">
         {/* Photo */}
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 rounded-full overflow-hidden bg-ohio-gray-medium flex-shrink-0 flex items-center justify-center">
+          <div className="w-20 h-20 rounded-full overflow-hidden bg-ohio-gray-medium flex-shrink-0 flex items-center justify-center">
             {alumni.profilePhoto ? (
               <Image
                 src={alumni.profilePhoto}
                 alt={alumni.fullName}
-                width={64}
-                height={64}
-                className="object-cover w-full h-full"
+                width={80}
+                height={80}
+                className="object-cover object-top w-full h-full"
               />
             ) : (
-              <span className="text-2xl font-bold text-ohio-gray">
+              <span className="text-3xl font-bold text-ohio-gray">
                 {alumni.fullName.charAt(0)}
               </span>
             )}
