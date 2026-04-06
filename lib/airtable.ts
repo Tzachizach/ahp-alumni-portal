@@ -157,6 +157,7 @@ export async function createAuthRecord(data: {
   role: 'alumni' | 'admin';
   alumniRecordId: string;
   name: string;
+  mustChangePassword?: boolean;
 }): Promise<AuthRecord> {
   const record = await base('Auth').create({
     Email: data.email,
@@ -164,7 +165,7 @@ export async function createAuthRecord(data: {
     Role: data.role,
     'Alumni Record ID': data.alumniRecordId,
     Name: data.name,
-    'Must Change Password': false,
+    'Must Change Password': data.mustChangePassword ?? false,
   });
   const f = record.fields as Record<string, unknown>;
   return {

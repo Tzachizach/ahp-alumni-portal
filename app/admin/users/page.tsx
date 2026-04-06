@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Alumni } from '@/lib/types';
-import { UserPlus, Trash2, KeyRound, Shield, User } from 'lucide-react';
+import { UserPlus, Trash2, KeyRound, Shield, User, CheckSquare, Square, Users as UsersIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface AuthRecord {
@@ -32,6 +32,11 @@ export default function UsersAdminPage() {
   const [resetTarget, setResetTarget] = useState<AuthRecord | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [resetting, setResetting] = useState(false);
+
+  // Bulk grant
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkPassword, setBulkPassword] = useState('');
+  const [bulkGranting, setBulkGranting] = useState(false);
 
   useEffect(() => {
     fetch('/api/admin/users')
@@ -112,6 +117,49 @@ export default function UsersAdminPage() {
   // Alumni without accounts
   const existingIds = new Set(users.map((u) => u.alumniRecordId));
   const alumniWithoutAccounts = alumni.filter((a) => !existingIds.has(a.id));
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    if (selectedIds.size === alumniWithoutAccounts.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(alumniWithoutAccounts.map((a) => a.id)));
+    }
+  }
+
+  async function handleBulkGrant(e: React.FormEvent) {
+    e.preventDefault();
+    if (selectedIds.size === 0 || bulkPassword.length < 8) return;
+    setBulkGranting(true);
+    try {
+      const res = await fetch('/api/admin/bulk-grant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ alumniIds: Array.from(selectedIds), password: bulkPassword }),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      toast.success(`${data.succeeded} account(s) created${data.failed ? `, ${data.failed} failed` : ''}`);
+      // Refresh the page data
+      const refreshRes = await fetch('/api/admin/users');
+      const refreshData = await refreshRes.json();
+      setUsers(refreshData.authRecords || []);
+      setAlumni(refreshData.alumni || []);
+      setSelectedIds(new Set());
+      setBulkPassword('');
+    } catch {
+      toast.error('Bulk grant failed.');
+    } finally {
+      setBulkGranting(false);
+    }
+  }
 
   return (
     <div className="max-w-4xl">
@@ -255,13 +303,60 @@ export default function UsersAdminPage() {
       {/* Alumni without accounts */}
       {alumniWithoutAccounts.length > 0 && (
         <div className="mt-8">
-          <h2 className="text-sm font-semibold text-ohio-gray uppercase tracking-wide mb-3">
-            Alumni Without Portal Access ({alumniWithoutAccounts.length})
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-ohio-gray uppercase tracking-wide">
+              Alumni Without Portal Access ({alumniWithoutAccounts.length})
+            </h2>
+            {selectedIds.size > 0 && (
+              <span className="text-sm text-scarlet font-medium">
+                {selectedIds.size} selected
+              </span>
+            )}
+          </div>
+
+          {/* Bulk grant form — shows when at least 1 is selected */}
+          {selectedIds.size > 0 && (
+            <form onSubmit={handleBulkGrant} className="card mb-4 flex flex-col sm:flex-row items-start sm:items-end gap-4">
+              <div className="flex-1">
+                <label className="label">Temporary Password for Selected ({selectedIds.size})</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={bulkPassword}
+                  onChange={(e) => setBulkPassword(e.target.value)}
+                  placeholder="Min. 8 characters — all selected get this password"
+                  minLength={8}
+                  required
+                />
+                <p className="text-xs text-ohio-gray mt-1">Users will be required to change this on first login.</p>
+              </div>
+              <button
+                type="submit"
+                disabled={bulkGranting || bulkPassword.length < 8}
+                className="btn-primary flex items-center gap-2 whitespace-nowrap"
+              >
+                <UsersIcon size={16} />
+                {bulkGranting ? 'Granting…' : `Grant Access to ${selectedIds.size}`}
+              </button>
+            </form>
+          )}
+
           <div className="card p-0 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-ohio-gray-medium bg-ohio-gray-light">
+                  <th className="px-4 py-3 w-10">
+                    <button
+                      type="button"
+                      onClick={toggleAll}
+                      className="text-ohio-gray hover:text-scarlet transition-colors"
+                      title={selectedIds.size === alumniWithoutAccounts.length ? 'Deselect all' : 'Select all'}
+                    >
+                      {selectedIds.size === alumniWithoutAccounts.length && alumniWithoutAccounts.length > 0
+                        ? <CheckSquare size={18} className="text-scarlet" />
+                        : <Square size={18} />}
+                    </button>
+                  </th>
                   <th className="text-left px-4 py-3 font-semibold text-ohio-gray">Name</th>
                   <th className="text-left px-4 py-3 font-semibold text-ohio-gray">Email</th>
                   <th className="text-left px-4 py-3 font-semibold text-ohio-gray">Year</th>
@@ -272,9 +367,25 @@ export default function UsersAdminPage() {
                 {alumniWithoutAccounts
                   .sort((a, b) => a.fullName.localeCompare(b.fullName))
                   .map((a) => (
-                    <tr key={a.id} className="border-b border-ohio-gray-medium last:border-0 hover:bg-ohio-gray-light">
+                    <tr
+                      key={a.id}
+                      className={`border-b border-ohio-gray-medium last:border-0 hover:bg-ohio-gray-light transition-colors ${
+                        selectedIds.has(a.id) ? 'bg-scarlet-light/30' : ''
+                      }`}
+                    >
+                      <td className="px-4 py-3 w-10">
+                        <button
+                          type="button"
+                          onClick={() => toggleSelect(a.id)}
+                          className="text-ohio-gray hover:text-scarlet transition-colors"
+                        >
+                          {selectedIds.has(a.id)
+                            ? <CheckSquare size={18} className="text-scarlet" />
+                            : <Square size={18} />}
+                        </button>
+                      </td>
                       <td className="px-4 py-3 font-medium text-ohio-gray-dark">{a.fullName}</td>
-                      <td className="px-4 py-3 text-ohio-gray">{a.email}</td>
+                      <td className="px-4 py-3 text-ohio-gray">{a.email || <span className="italic text-ohio-gray/50">no email</span>}</td>
                       <td className="px-4 py-3 text-ohio-gray">{a.graduationYear}</td>
                       <td className="px-4 py-3">
                         <button
@@ -285,7 +396,7 @@ export default function UsersAdminPage() {
                           }}
                           className="text-xs text-scarlet hover:underline flex items-center gap-1"
                         >
-                          <UserPlus size={12} /> Grant Access
+                          <UserPlus size={12} /> Individual
                         </button>
                       </td>
                     </tr>

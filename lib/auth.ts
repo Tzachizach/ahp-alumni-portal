@@ -26,6 +26,7 @@ export const authOptions: NextAuthOptions = {
           name: authRecord.name,
           role: authRecord.role,
           alumniRecordId: authRecord.alumniRecordId,
+          mustChangePassword: authRecord.mustChangePassword,
         };
       },
     }),
@@ -37,6 +38,7 @@ export const authOptions: NextAuthOptions = {
         token.role = (user as { role?: string }).role;
         token.alumniRecordId = (user as { alumniRecordId?: string }).alumniRecordId;
         token.authId = user.id;
+        token.mustChangePassword = (user as { mustChangePassword?: boolean }).mustChangePassword;
       }
       return token;
     },
@@ -45,6 +47,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as { role?: string }).role = token.role as string;
         (session.user as { alumniRecordId?: string }).alumniRecordId = token.alumniRecordId as string;
         (session.user as { authId?: string }).authId = token.authId as string;
+        (session.user as { mustChangePassword?: boolean }).mustChangePassword = token.mustChangePassword as boolean;
       }
       return session;
     },
