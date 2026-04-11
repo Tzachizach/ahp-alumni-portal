@@ -5,16 +5,47 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID!
 );
 
+// ─── Detect AI conversational / "no input" responses ─────────────────────────
+// Airtable AI agent fields sometimes return messages like
+// "Understood. Please provide the descriptions..." instead of a real value
+// when the input is empty. We strip these out so they don't leak into the UI.
+function looksLikeAIFallback(s: string): boolean {
+  const lower = s.toLowerCase().trim();
+  if (lower.length < 5) return false;
+  const phrases = [
+    'please provide',
+    'understood. please',
+    'i need more',
+    'could you provide',
+    "i don't have enough",
+    'i do not have enough',
+    'there is no ',
+    'i cannot categorize',
+    "i can't categorize",
+    'insufficient information',
+    'no description',
+    'no information provided',
+    'as an ai',
+    'i am unable',
+    "i'm unable",
+  ];
+  return phrases.some((p) => lower.includes(p));
+}
+
 // ─── Safely convert any Airtable field value to a string ─────────────────────
 function str(value: unknown): string {
   if (!value) return '';
   if (Array.isArray(value)) return value.join(', ');
   // Handle Airtable AI agent fields which return { state, value, isStale }
   if (typeof value === 'object' && value !== null && 'value' in value) {
-    const aiVal = (value as { value?: string }).value;
-    return aiVal?.trim() || '';
+    const aiVal = (value as { value?: string }).value?.trim() || '';
+    if (!aiVal || looksLikeAIFallback(aiVal)) return '';
+    return aiVal;
   }
-  return String(value);
+  const out = String(value);
+  // Also sanitize plain-string fields that may hold an AI agent's response
+  if (looksLikeAIFallback(out)) return '';
+  return out;
 }
 
 // ─── Helper: map raw Airtable record → Alumni ────────────────────────────────
