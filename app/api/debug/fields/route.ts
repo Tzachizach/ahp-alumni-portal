@@ -9,17 +9,44 @@ export async function GET() {
   if (!session || !isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID!);
-  const records = await base('Alumni').select({ maxRecords: 1 }).all();
+  // Pull several records so we see all fields (a single record may have empty fields omitted)
+  const records = await base('Alumni').select({ maxRecords: 10 }).all();
   if (records.length === 0) return NextResponse.json({ fields: [] });
 
-  const fieldNames = Object.keys(records[0].fields).sort();
-  const f = records[0].fields as Record<string, unknown>;
-  const locationDebug = {
-    'Location value': f['Location'],
-    'Location type': typeof f['Location'],
-    'Standardized Location value': f['Standardized Location'],
-    'Standardized Location type': typeof f['Standardized Location'],
-    'Standardized Location JSON': JSON.stringify(f['Standardized Location']),
-  };
-  return NextResponse.json({ fieldNames, locationDebug });
+  // Combine all field names seen across these records
+  const fieldInfo: Record<string, { type: string; sample: unknown }> = {};
+  for (const rec of records) {
+    const f = rec.fields as Record<string, unknown>;
+    for (const [key, value] of Object.entries(f)) {
+      if (!fieldInfo[key]) {
+        fieldInfo[key] = {
+          type: Array.isArray(value) ? 'array' : typeof value,
+          sample: Array.isArray(value) ? value.slice(0, 3) : value,
+        };
+      }
+    }
+  }
+
+  const allFields = Object.keys(fieldInfo).sort();
+
+  // Highlight the fields we care about right now
+  const focus = [
+    'LinkedIn',
+    'LinkedIn URL',
+    'LinkedIn Profile',
+    'Professional achievements and accomplishments',
+    'Professional Achievements and Accomplishments',
+    'Summarized Interest Group',
+    'Areas of Interest for Engagement',
+  ];
+  const focusInfo: Record<string, unknown> = {};
+  for (const name of focus) {
+    focusInfo[name] = fieldInfo[name] ?? '(not found)';
+  }
+
+  return NextResponse.json({
+    allFields,
+    focusInfo,
+    allFieldsWithTypes: fieldInfo,
+  });
 }
