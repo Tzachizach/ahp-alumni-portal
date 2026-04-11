@@ -30,11 +30,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   try {
     const body = await req.json();
-    // Strip AI-computed fields — Airtable rejects writes to them
+    // Strip AI-computed and known read-only fields — Airtable rejects writes to them
     const AI_FIELDS = new Set([
       'Summary of Career Progression (AI)',
       'Networking Category (AI)',
       'Standardized Location',
+      'Summarized Interest Group', // AI agent field (no "(AI)" suffix but still computed)
     ]);
     const filtered: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(body)) {

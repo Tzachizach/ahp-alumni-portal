@@ -20,6 +20,7 @@ export interface Alumni {
   // Networking
   networkingPreferences: string;
   networkingCategory: string;
+  personalProfessionalInterests: string;
   // Personal
   favoriteMemory: string;
   favoriteAHPMemory: string;

@@ -6,23 +6,20 @@ import { Alumni } from '@/lib/types';
 import toast from 'react-hot-toast';
 import { Save, User } from 'lucide-react';
 
+const INTERESTS_FIELD = 'In the website, we can create community spaces for alums with similar interests to communicate. What are professional and personal interests you have?';
+
 type EditableFields = {
   'Phone Number': string;
   'Location': string;
-  'LinkedIn': string;
   'Current Job Title': string;
   'Current Employer': string;
   'Previous Job Title (s)': string;
   'Previous Employer (s)': string;
-  'Professional achievements and accomplishments': string;
-  'Professional areas of expertise': string;
-  'Networking Preferences': string;
   'Favorite Professor Young Memory': string;
   'Favorite Accounting Honors Memory': string;
   'Personal Achievements Beyond Work': string;
-  'Summarized Interest Group': string;
-  'Areas of Interest for Engagement': string;
   'Advice for Current Students': string;
+  [INTERESTS_FIELD]: string;
 };
 
 type FieldKey = keyof EditableFields;
@@ -45,20 +42,15 @@ export default function MyProfilePage() {
         setForm({
           'Phone Number': data.phone,
           'Location': data.location,
-          'LinkedIn': data.linkedIn,
           'Current Job Title': data.currentJobTitle,
           'Current Employer': data.currentEmployer,
           'Previous Job Title (s)': data.previousJobTitle,
           'Previous Employer (s)': data.previousEmployer,
-          'Professional achievements and accomplishments': data.professionalAchievements,
-          'Professional areas of expertise': data.professionalAreasOfExpertise,
-          'Networking Preferences': data.networkingPreferences,
           'Favorite Professor Young Memory': data.favoriteMemory,
           'Favorite Accounting Honors Memory': data.favoriteAHPMemory,
           'Personal Achievements Beyond Work': data.personalAchievements,
-          'Summarized Interest Group': data.summarizedInterestGroup,
-          'Areas of Interest for Engagement': data.areasOfInterestForEngagement,
           'Advice for Current Students': data.adviceForCurrentStudents,
+          [INTERESTS_FIELD]: data.personalProfessionalInterests,
         });
         setLoading(false);
       })
@@ -83,7 +75,7 @@ export default function MyProfilePage() {
       if (!res.ok) {
         const errMsg = data?.error || `HTTP ${res.status}`;
         console.error('[Profile save] server error:', data);
-        toast.error(`Save failed: ${errMsg}`, { duration: 6000 });
+        toast.error(`Save failed: ${errMsg}`, { duration: 8000 });
         return;
       }
       toast.success('Profile saved!');
@@ -95,8 +87,6 @@ export default function MyProfilePage() {
     }
   }
 
-  // Inline field renderers — defined outside JSX-tree rerenders by being plain helpers
-  // that don't introduce new component identities on each render.
   const renderInput = (label: string, field: FieldKey, type = 'text') => (
     <div>
       <label className="label">{label}</label>
@@ -118,6 +108,16 @@ export default function MyProfilePage() {
         value={form[field] || ''}
         onChange={(e) => set(field, e.target.value)}
       />
+    </div>
+  );
+
+  const renderReadOnly = (label: string, value: string | undefined, hint?: string) => (
+    <div>
+      <label className="label">{label}</label>
+      <div className="input bg-ohio-gray-light/50 text-ohio-gray whitespace-pre-wrap min-h-[2.5rem]">
+        {value || <span className="italic text-ohio-gray/60">—</span>}
+      </div>
+      {hint && <p className="text-xs text-ohio-gray mt-1">{hint}</p>}
     </div>
   );
 
@@ -161,7 +161,6 @@ export default function MyProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {renderInput('Phone Number', 'Phone Number', 'tel')}
             {renderInput('Location (City, State)', 'Location')}
-            {renderInput('LinkedIn URL', 'LinkedIn', 'url')}
           </div>
         </div>
 
@@ -174,28 +173,38 @@ export default function MyProfilePage() {
             {renderInput('Previous Job Title', 'Previous Job Title (s)')}
             {renderInput('Previous Employer', 'Previous Employer (s)')}
           </div>
-          <div className="mt-4 space-y-4">
-            {alumni?.summaryOfCareerProgression && (
-              <div>
-                <label className="label">Career Summary (auto-generated)</label>
-                <div className="input bg-ohio-gray-light/50 text-ohio-gray whitespace-pre-wrap">
-                  {alumni.summaryOfCareerProgression}
-                </div>
-                <p className="text-xs text-ohio-gray mt-1">This summary is generated automatically from your career information.</p>
-              </div>
-            )}
-            {renderTextarea('Professional Achievements', 'Professional achievements and accomplishments', 3)}
-            {renderTextarea('Areas of Expertise', 'Professional areas of expertise', 2)}
-          </div>
+          {alumni?.summaryOfCareerProgression && (
+            <div className="mt-4">
+              {renderReadOnly(
+                'Career Summary (auto-generated)',
+                alumni.summaryOfCareerProgression,
+                'This summary is generated automatically from your career information.'
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Networking */}
+        {/* Interests & Engagement */}
         <div className="card">
-          <h2 className="font-bold text-ohio-gray-dark mb-4">Networking</h2>
+          <h2 className="font-bold text-ohio-gray-dark mb-4">Interests & Engagement</h2>
           <div className="space-y-4">
-            {renderTextarea("Networking Preferences (what you're open to)", 'Networking Preferences', 2)}
-            {renderTextarea('Areas of Interest for Engagement', 'Areas of Interest for Engagement', 2)}
-            {renderInput('Interest Group Tags (comma-separated)', 'Summarized Interest Group')}
+            {renderTextarea(
+              'Professional & Personal Interests',
+              INTERESTS_FIELD,
+              4
+            )}
+            {alumni?.summarizedInterestGroup &&
+              renderReadOnly(
+                'Interest Group Tags (auto-generated)',
+                alumni.summarizedInterestGroup,
+                'These tags are generated automatically from your interests text above.'
+              )}
+            {alumni?.areasOfInterestForEngagement &&
+              renderReadOnly(
+                'Areas of Interest for Engagement',
+                alumni.areasOfInterestForEngagement,
+                'This field uses predefined options — please contact your administrator to update it.'
+              )}
           </div>
         </div>
 

@@ -53,6 +53,9 @@ function mapAlumni(record: Airtable.Record<Airtable.FieldSet>): Alumni {
     personalAchievements: str(f['Personal Achievements Beyond Work']),
     summarizedInterestGroup: str(f['Summarized Interest Group']),
     areasOfInterestForEngagement: str(f['Areas of Interest for Engagement']),
+    personalProfessionalInterests: str(
+      f['In the website, we can create community spaces for alums with similar interests to communicate. What are professional and personal interests you have?']
+    ),
     adviceForCurrentStudents: str(f['Advice for Current Students']),
     alumniEvents: Array.isArray(f['Alumni Events']) ? f['Alumni Events'] as string[] : [],
   };
