@@ -5,6 +5,16 @@ import AlumniCard from '@/components/AlumniCard';
 import { Alumni } from '@/lib/types';
 import { Search, Filter, X } from 'lucide-react';
 
+// Fisher–Yates shuffle — returns a new randomly ordered array
+function shuffle<T>(arr: T[]): T[] {
+  const out = [...arr];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 export default function DirectoryPage() {
   const searchParams = useSearchParams();
   const [alumni, setAlumni] = useState<Alumni[]>([]);
@@ -31,7 +41,8 @@ export default function DirectoryPage() {
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          setAlumni(data);
+          // Randomize order each time the directory loads so everyone gets equal exposure
+          setAlumni(shuffle(data));
         } else {
           console.error('Alumni API error:', data);
           setError(data?.detail || data?.error || 'Failed to load alumni');
