@@ -2,13 +2,26 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Alumni } from '@/lib/types';
-import { MapPin, Briefcase, GraduationCap } from 'lucide-react';
+import { MapPin, Briefcase, GraduationCap, Linkedin } from 'lucide-react';
 
 export default function AlumniCard({ alumni }: { alumni: Alumni }) {
   const router = useRouter();
   return (
     <Link href={`/profile/${alumni.id}`}>
-      <div className="card hover:shadow-md hover:border-scarlet transition-all duration-200 cursor-pointer h-full flex flex-col">
+      <div className="card hover:shadow-md hover:border-scarlet transition-all duration-200 cursor-pointer h-full flex flex-col relative">
+        {/* LinkedIn icon — top right */}
+        {alumni.linkedIn && (
+          <a
+            href={alumni.linkedIn.startsWith('http') ? alumni.linkedIn : `https://${alumni.linkedIn}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-3 right-3 p-1.5 rounded-md text-ohio-gray hover:text-scarlet hover:bg-scarlet-light transition-colors"
+            title="View LinkedIn profile"
+          >
+            <Linkedin size={16} />
+          </a>
+        )}
         {/* Photo */}
         <div className="flex items-center gap-4 mb-4">
           <div className="w-20 h-20 rounded-full overflow-hidden bg-ohio-gray-medium flex-shrink-0 flex items-center justify-center">

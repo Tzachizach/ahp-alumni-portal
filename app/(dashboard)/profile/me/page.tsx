@@ -11,6 +11,7 @@ const INTERESTS_FIELD = 'In the website, we can create community spaces for alum
 type EditableFields = {
   'Phone Number': string;
   'Location': string;
+  'LinkedIn': string;
   'Current Job Title': string;
   'Current Employer': string;
   'Previous Job Title (s)': string;
@@ -42,6 +43,7 @@ export default function MyProfilePage() {
         setForm({
           'Phone Number': data.phone,
           'Location': data.location,
+          'LinkedIn': data.linkedIn,
           'Current Job Title': data.currentJobTitle,
           'Current Employer': data.currentEmployer,
           'Previous Job Title (s)': data.previousJobTitle,
@@ -161,6 +163,9 @@ export default function MyProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {renderInput('Phone Number', 'Phone Number', 'tel')}
             {renderInput('Location (City, State)', 'Location')}
+            <div className="sm:col-span-2">
+              {renderInput('LinkedIn URL', 'LinkedIn', 'url')}
+            </div>
           </div>
         </div>
 
