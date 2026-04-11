@@ -25,6 +25,8 @@ type EditableFields = {
   'Advice for Current Students': string;
 };
 
+type FieldKey = keyof EditableFields;
+
 export default function MyProfilePage() {
   const { data: session } = useSession();
   const alumniId = (session?.user as { alumniRecordId?: string })?.alumniRecordId;
@@ -63,7 +65,7 @@ export default function MyProfilePage() {
       .catch(() => setLoading(false));
   }, [alumniId]);
 
-  function set(field: keyof EditableFields, value: string) {
+  function set(field: FieldKey, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -77,42 +79,47 @@ export default function MyProfilePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const errMsg = data?.error || `HTTP ${res.status}`;
+        console.error('[Profile save] server error:', data);
+        toast.error(`Save failed: ${errMsg}`, { duration: 6000 });
+        return;
+      }
       toast.success('Profile saved!');
-    } catch {
-      toast.error('Failed to save. Please try again.');
+    } catch (err) {
+      console.error('[Profile save] network error:', err);
+      toast.error('Network error — could not save.');
     } finally {
       setSaving(false);
     }
   }
 
-  function Input({ label, field, type = 'text' }: { label: string; field: keyof EditableFields; type?: string }) {
-    return (
-      <div>
-        <label className="label">{label}</label>
-        <input
-          type={type}
-          className="input"
-          value={form[field] || ''}
-          onChange={(e) => set(field, e.target.value)}
-        />
-      </div>
-    );
-  }
+  // Inline field renderers — defined outside JSX-tree rerenders by being plain helpers
+  // that don't introduce new component identities on each render.
+  const renderInput = (label: string, field: FieldKey, type = 'text') => (
+    <div>
+      <label className="label">{label}</label>
+      <input
+        type={type}
+        className="input"
+        value={form[field] || ''}
+        onChange={(e) => set(field, e.target.value)}
+      />
+    </div>
+  );
 
-  function Textarea({ label, field, rows = 3 }: { label: string; field: keyof EditableFields; rows?: number }) {
-    return (
-      <div>
-        <label className="label">{label}</label>
-        <textarea
-          className="input resize-none"
-          rows={rows}
-          value={form[field] || ''}
-          onChange={(e) => set(field, e.target.value)}
-        />
-      </div>
-    );
-  }
+  const renderTextarea = (label: string, field: FieldKey, rows = 3) => (
+    <div>
+      <label className="label">{label}</label>
+      <textarea
+        className="input resize-none"
+        rows={rows}
+        value={form[field] || ''}
+        onChange={(e) => set(field, e.target.value)}
+      />
+    </div>
+  );
 
   if (loading) return (
     <div className="animate-pulse space-y-6">
@@ -152,9 +159,9 @@ export default function MyProfilePage() {
         <div className="card">
           <h2 className="font-bold text-ohio-gray-dark mb-4">Contact Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Phone Number" field="Phone Number" type="tel" />
-            <Input label="Location (City, State)" field="Location" />
-            <Input label="LinkedIn URL" field="LinkedIn" type="url" />
+            {renderInput('Phone Number', 'Phone Number', 'tel')}
+            {renderInput('Location (City, State)', 'Location')}
+            {renderInput('LinkedIn URL', 'LinkedIn', 'url')}
           </div>
         </div>
 
@@ -162,10 +169,10 @@ export default function MyProfilePage() {
         <div className="card">
           <h2 className="font-bold text-ohio-gray-dark mb-4">Career</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Current Job Title" field="Current Job Title" />
-            <Input label="Current Employer" field="Current Employer" />
-            <Input label="Previous Job Title" field="Previous Job Title (s)" />
-            <Input label="Previous Employer" field="Previous Employer (s)" />
+            {renderInput('Current Job Title', 'Current Job Title')}
+            {renderInput('Current Employer', 'Current Employer')}
+            {renderInput('Previous Job Title', 'Previous Job Title (s)')}
+            {renderInput('Previous Employer', 'Previous Employer (s)')}
           </div>
           <div className="mt-4 space-y-4">
             {alumni?.summaryOfCareerProgression && (
@@ -177,8 +184,8 @@ export default function MyProfilePage() {
                 <p className="text-xs text-ohio-gray mt-1">This summary is generated automatically from your career information.</p>
               </div>
             )}
-            <Textarea label="Professional Achievements" field="Professional achievements and accomplishments" rows={3} />
-            <Textarea label="Areas of Expertise" field="Professional areas of expertise" rows={2} />
+            {renderTextarea('Professional Achievements', 'Professional achievements and accomplishments', 3)}
+            {renderTextarea('Areas of Expertise', 'Professional areas of expertise', 2)}
           </div>
         </div>
 
@@ -186,9 +193,9 @@ export default function MyProfilePage() {
         <div className="card">
           <h2 className="font-bold text-ohio-gray-dark mb-4">Networking</h2>
           <div className="space-y-4">
-            <Textarea label="Networking Preferences (what you're open to)" field="Networking Preferences" rows={2} />
-            <Textarea label="Areas of Interest for Engagement" field="Areas of Interest for Engagement" rows={2} />
-            <Input label="Interest Group Tags (comma-separated)" field="Summarized Interest Group" />
+            {renderTextarea("Networking Preferences (what you're open to)", 'Networking Preferences', 2)}
+            {renderTextarea('Areas of Interest for Engagement', 'Areas of Interest for Engagement', 2)}
+            {renderInput('Interest Group Tags (comma-separated)', 'Summarized Interest Group')}
           </div>
         </div>
 
@@ -196,10 +203,10 @@ export default function MyProfilePage() {
         <div className="card">
           <h2 className="font-bold text-ohio-gray-dark mb-4">Personal</h2>
           <div className="space-y-4">
-            <Textarea label="Favorite Professor / Young Memory" field="Favorite Professor Young Memory" rows={2} />
-            <Textarea label="Favorite AHP Memory" field="Favorite Accounting Honors Memory" rows={2} />
-            <Textarea label="Personal Achievements Beyond Work" field="Personal Achievements Beyond Work" rows={2} />
-            <Textarea label="Advice for Current Students" field="Advice for Current Students" rows={3} />
+            {renderTextarea('Favorite Professor / Young Memory', 'Favorite Professor Young Memory', 2)}
+            {renderTextarea('Favorite AHP Memory', 'Favorite Accounting Honors Memory', 2)}
+            {renderTextarea('Personal Achievements Beyond Work', 'Personal Achievements Beyond Work', 2)}
+            {renderTextarea('Advice for Current Students', 'Advice for Current Students', 3)}
           </div>
         </div>
 

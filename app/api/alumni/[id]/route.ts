@@ -41,10 +41,42 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (AI_FIELDS.has(key) || key.includes('(AI)')) continue;
       filtered[key] = value;
     }
-    const updated = await updateAlumni(params.id, filtered);
-    return NextResponse.json(updated);
+
+    try {
+      const updated = await updateAlumni(params.id, filtered);
+      return NextResponse.json(updated);
+    } catch (airtableErr) {
+      // Bulk update failed — try per-field to identify which one(s) are bad
+      console.error('[PATCH /api/alumni] bulk update failed, falling back to per-field:', airtableErr);
+      const failed: { field: string; error: string }[] = [];
+      const succeeded: string[] = [];
+      for (const [key, value] of Object.entries(filtered)) {
+        try {
+          await updateAlumni(params.id, { [key]: value });
+          succeeded.push(key);
+        } catch (perFieldErr) {
+          const msg = perFieldErr instanceof Error ? perFieldErr.message : String(perFieldErr);
+          failed.push({ field: key, error: msg });
+          console.error(`[PATCH /api/alumni] failed field "${key}":`, msg);
+        }
+      }
+      if (failed.length === 0) {
+        // All per-field writes succeeded — return success
+        const refreshed = await (await import('@/lib/airtable')).getAlumniById(params.id);
+        return NextResponse.json(refreshed);
+      }
+      const summary = failed.map((f) => `${f.field}: ${f.error}`).join(' | ');
+      return NextResponse.json(
+        {
+          error: `Some fields failed to save. ${summary}`,
+          failed,
+          succeeded,
+        },
+        { status: 500 }
+      );
+    }
   } catch (err) {
-    console.error('[PATCH /api/alumni] Airtable error:', err);
+    console.error('[PATCH /api/alumni] unexpected error:', err);
     const message = err instanceof Error ? err.message : 'Failed to update alumni';
     return NextResponse.json({ error: message }, { status: 500 });
   }
