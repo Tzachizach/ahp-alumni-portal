@@ -39,8 +39,8 @@ export default function AlumniCard({ alumni }: { alumni: Alumni }) {
               </span>
             )}
           </div>
-          <div className="overflow-hidden">
-            <h3 className="font-bold text-ohio-gray-dark text-base leading-tight truncate">
+          <div className="flex-1 min-w-0 pr-8">
+            <h3 className="font-bold text-ohio-gray-dark text-base leading-tight break-words">
               {alumni.fullName}
             </h3>
             {alumni.graduationYear && (
