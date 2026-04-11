@@ -88,27 +88,9 @@ export async function getAlumniByEmail(email: string): Promise<Alumni | null> {
 
 export async function updateAlumni(
   recordId: string,
-  fields: Partial<{
-    'Phone Number': string;
-    'Location': string;
-    'LinkedIn': string;
-    'Current Job Title': string;
-    'Current Employer': string;
-    'Previous Job Title (s)': string;
-    'Previous Employer (s)': string;
-    'Summary of Career Progression (AI)': string;
-    'Professional achievements and accomplishments': string;
-    'Professional areas of expertise': string;
-    'Networking Preferences': string;
-    'Favorite Professor Young Memory': string;
-    'Favorite Accounting Honors Memory': string;
-    'Personal Achievements Beyond Work': string;
-    'Summarized Interest Group': string;
-    'Areas of Interest for Engagement': string;
-    'Advice for Current Students': string;
-  }>
+  fields: Record<string, unknown>
 ): Promise<Alumni> {
-  const record = await base('Alumni').update(recordId, fields);
+  const record = await base('Alumni').update(recordId, fields as Partial<Airtable.FieldSet>);
   return mapAlumni(record);
 }
 

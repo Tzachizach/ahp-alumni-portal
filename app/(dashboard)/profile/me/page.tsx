@@ -14,7 +14,6 @@ type EditableFields = {
   'Current Employer': string;
   'Previous Job Title (s)': string;
   'Previous Employer (s)': string;
-  'Summary of Career Progression (AI)': string;
   'Professional achievements and accomplishments': string;
   'Professional areas of expertise': string;
   'Networking Preferences': string;
@@ -49,7 +48,6 @@ export default function MyProfilePage() {
           'Current Employer': data.currentEmployer,
           'Previous Job Title (s)': data.previousJobTitle,
           'Previous Employer (s)': data.previousEmployer,
-          'Summary of Career Progression (AI)': data.summaryOfCareerProgression,
           'Professional achievements and accomplishments': data.professionalAchievements,
           'Professional areas of expertise': data.professionalAreasOfExpertise,
           'Networking Preferences': data.networkingPreferences,
@@ -170,7 +168,15 @@ export default function MyProfilePage() {
             <Input label="Previous Employer" field="Previous Employer (s)" />
           </div>
           <div className="mt-4 space-y-4">
-            <Textarea label="Career Summary" field="Summary of Career Progression (AI)" rows={4} />
+            {alumni?.summaryOfCareerProgression && (
+              <div>
+                <label className="label">Career Summary (auto-generated)</label>
+                <div className="input bg-ohio-gray-light/50 text-ohio-gray whitespace-pre-wrap">
+                  {alumni.summaryOfCareerProgression}
+                </div>
+                <p className="text-xs text-ohio-gray mt-1">This summary is generated automatically from your career information.</p>
+              </div>
+            )}
             <Textarea label="Professional Achievements" field="Professional achievements and accomplishments" rows={3} />
             <Textarea label="Areas of Expertise" field="Professional areas of expertise" rows={2} />
           </div>
