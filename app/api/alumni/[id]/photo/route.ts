@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getAlumniById } from '@/lib/airtable';
+import { getAlumniById, updateAlumni } from '@/lib/airtable';
 
 // Airtable attachment limits
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -90,6 +90,32 @@ export async function POST(
       { error: `Airtable rejected the upload (${airtableRes.status}): ${errText.slice(0, 300)}` },
       { status: 500 }
     );
+  }
+
+  // The uploadAttachment endpoint APPENDS to the attachment field, so we now
+  // have the new photo plus all previous ones. Parse the response, find the
+  // newly uploaded attachment, and overwrite the field to keep only that one —
+  // Airtable will then garbage-collect the orphaned older attachments.
+  try {
+    const payload = await airtableRes.json();
+    const attachments = payload?.fields?.['Profile Photo'] as
+      | { id: string; url: string; createdTime?: string }[]
+      | undefined;
+
+    if (attachments && attachments.length > 0) {
+      // The uploadAttachment endpoint pushes the new attachment to the end of
+      // the array, so the last item is the one we just uploaded.
+      const newest = attachments[attachments.length - 1];
+      if (attachments.length > 1) {
+        await updateAlumni(params.id, {
+          'Profile Photo': [{ id: newest.id }],
+        });
+      }
+    }
+  } catch (err) {
+    // Non-fatal — the upload itself succeeded. Worst case: old photos linger
+    // and we can clean them up later.
+    console.warn('[Photo upload] Could not prune old attachments:', err);
   }
 
   // Return the refreshed alumni record so the client can update the UI
