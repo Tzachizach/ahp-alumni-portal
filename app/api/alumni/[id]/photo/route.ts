@@ -92,11 +92,33 @@ export async function POST(
     );
   }
 
-  // The uploadAttachment endpoint APPENDS to the attachment field, so we now
-  // have the new photo plus all previous ones. Fetch the record fresh via the
-  // standard API (which reliably uses field names), find the newest
-  // attachment by createdTime, and overwrite the field to keep only that one.
-  // Airtable then garbage-collects the orphaned older attachments.
+  // Capture the newly uploaded attachment's ID directly from the
+  // uploadAttachment response. The response may key fields by name or by
+  // field ID, so scan for the attachment array and take the last item
+  // (uploadAttachment appends to the end).
+  let newAttachmentId: string | null = null;
+  try {
+    const payload = await airtableRes.json();
+    const fields = payload?.fields as Record<string, unknown> | undefined;
+    if (fields) {
+      for (const value of Object.values(fields)) {
+        if (Array.isArray(value) && value.length > 0) {
+          const last = value[value.length - 1] as { id?: string; url?: string };
+          if (last?.id && last?.url) {
+            newAttachmentId = last.id;
+            break;
+          }
+        }
+      }
+    }
+    console.log('[Photo upload] new attachment ID from response:', newAttachmentId);
+  } catch (err) {
+    console.warn('[Photo upload] Could not parse upload response:', err);
+  }
+
+  // The uploadAttachment endpoint APPENDS, so the field now has the new
+  // photo plus all previous ones. Overwrite the field to keep only the
+  // new one — Airtable garbage-collects the orphaned older attachments.
   try {
     const fetchRes = await fetch(
       `https://api.airtable.com/v0/${baseId}/Alumni/${params.id}`,
@@ -105,7 +127,7 @@ export async function POST(
     if (fetchRes.ok) {
       const recordData = await fetchRes.json();
       const attachments = recordData?.fields?.['Profile Photo'] as
-        | { id: string; url: string; createdTime?: string }[]
+        | { id: string; url: string }[]
         | undefined;
 
       console.log(
@@ -114,21 +136,22 @@ export async function POST(
       );
 
       if (attachments && attachments.length > 1) {
-        // Sort by createdTime descending — newest first. Fall back to array
-        // order if createdTime is missing.
-        const sorted = [...attachments].sort((a, b) => {
-          const aT = a.createdTime ? new Date(a.createdTime).getTime() : 0;
-          const bT = b.createdTime ? new Date(b.createdTime).getTime() : 0;
-          return bT - aT;
-        });
-        const newest = sorted[0] ?? attachments[attachments.length - 1];
-        console.log(
-          '[Photo upload] pruning to keep only attachment:',
-          newest.id
-        );
+        // Prefer the ID from the upload response; fall back to the last
+        // attachment in the array (uploadAttachment appends to the end).
+        const keepId = newAttachmentId ?? attachments[attachments.length - 1].id;
+        console.log('[Photo upload] pruning to keep only:', keepId);
         await updateAlumni(params.id, {
-          'Profile Photo': [{ id: newest.id }],
+          'Profile Photo': [{ id: keepId }],
         });
+      } else if (attachments && attachments.length === 1 && newAttachmentId && attachments[0].id !== newAttachmentId) {
+        // Weird case: refetch shows only one attachment but it's not the new one.
+        // Means the new one didn't make it in. Log for diagnosis.
+        console.warn(
+          '[Photo upload] single attachment does not match uploaded ID — newAttachmentId=',
+          newAttachmentId,
+          'present=',
+          attachments[0].id
+        );
       }
     } else {
       const errText = await fetchRes.text();
@@ -139,8 +162,7 @@ export async function POST(
       );
     }
   } catch (err) {
-    // Non-fatal — the upload itself succeeded. Worst case: old photos linger
-    // and we can clean them up later.
+    // Non-fatal — the upload itself succeeded.
     console.warn('[Photo upload] Could not prune old attachments:', err);
   }
 
