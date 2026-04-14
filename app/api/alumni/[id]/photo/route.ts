@@ -93,24 +93,50 @@ export async function POST(
   }
 
   // The uploadAttachment endpoint APPENDS to the attachment field, so we now
-  // have the new photo plus all previous ones. Parse the response, find the
-  // newly uploaded attachment, and overwrite the field to keep only that one —
-  // Airtable will then garbage-collect the orphaned older attachments.
+  // have the new photo plus all previous ones. Fetch the record fresh via the
+  // standard API (which reliably uses field names), find the newest
+  // attachment by createdTime, and overwrite the field to keep only that one.
+  // Airtable then garbage-collects the orphaned older attachments.
   try {
-    const payload = await airtableRes.json();
-    const attachments = payload?.fields?.['Profile Photo'] as
-      | { id: string; url: string; createdTime?: string }[]
-      | undefined;
+    const fetchRes = await fetch(
+      `https://api.airtable.com/v0/${baseId}/Alumni/${params.id}`,
+      { headers: { Authorization: `Bearer ${apiKey}` } }
+    );
+    if (fetchRes.ok) {
+      const recordData = await fetchRes.json();
+      const attachments = recordData?.fields?.['Profile Photo'] as
+        | { id: string; url: string; createdTime?: string }[]
+        | undefined;
 
-    if (attachments && attachments.length > 0) {
-      // The uploadAttachment endpoint pushes the new attachment to the end of
-      // the array, so the last item is the one we just uploaded.
-      const newest = attachments[attachments.length - 1];
-      if (attachments.length > 1) {
+      console.log(
+        '[Photo upload] current Profile Photo count:',
+        attachments?.length ?? 0
+      );
+
+      if (attachments && attachments.length > 1) {
+        // Sort by createdTime descending — newest first. Fall back to array
+        // order if createdTime is missing.
+        const sorted = [...attachments].sort((a, b) => {
+          const aT = a.createdTime ? new Date(a.createdTime).getTime() : 0;
+          const bT = b.createdTime ? new Date(b.createdTime).getTime() : 0;
+          return bT - aT;
+        });
+        const newest = sorted[0] ?? attachments[attachments.length - 1];
+        console.log(
+          '[Photo upload] pruning to keep only attachment:',
+          newest.id
+        );
         await updateAlumni(params.id, {
           'Profile Photo': [{ id: newest.id }],
         });
       }
+    } else {
+      const errText = await fetchRes.text();
+      console.warn(
+        '[Photo upload] Could not fetch record for prune:',
+        fetchRes.status,
+        errText.slice(0, 200)
+      );
     }
   } catch (err) {
     // Non-fatal — the upload itself succeeded. Worst case: old photos linger
