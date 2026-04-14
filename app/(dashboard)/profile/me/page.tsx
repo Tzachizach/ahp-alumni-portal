@@ -1,10 +1,10 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { Alumni } from '@/lib/types';
 import toast from 'react-hot-toast';
-import { Save, User } from 'lucide-react';
+import { Save, User, Camera, Loader2 } from 'lucide-react';
 
 const INTERESTS_FIELD = 'In the website, we can create community spaces for alums with similar interests to communicate. What are professional and personal interests you have?';
 
@@ -32,7 +32,9 @@ export default function MyProfilePage() {
   const [alumni, setAlumni] = useState<Alumni | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [form, setForm] = useState<Partial<EditableFields>>({});
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!alumniId) return;
@@ -61,6 +63,46 @@ export default function MyProfilePage() {
 
   function set(field: FieldKey, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    // Reset the input so selecting the same file again re-triggers change
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (!file || !alumniId) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be under 5 MB.');
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append('photo', file);
+      const res = await fetch(`/api/alumni/${alumniId}/photo`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = data?.error || `HTTP ${res.status}`;
+        console.error('[Photo upload] server error:', data);
+        toast.error(`Upload failed: ${msg}`, { duration: 8000 });
+        return;
+      }
+      setAlumni(data as Alumni);
+      toast.success('Profile photo updated!');
+    } catch (err) {
+      console.error('[Photo upload] network error:', err);
+      toast.error('Network error — could not upload photo.');
+    } finally {
+      setUploadingPhoto(false);
+    }
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -138,12 +180,48 @@ export default function MyProfilePage() {
 
       {/* Read-only header */}
       <div className="card mb-6 flex items-center gap-5">
-        <div className="w-20 h-20 rounded-full overflow-hidden bg-ohio-gray-medium flex-shrink-0 flex items-center justify-center border-4 border-scarlet">
-          {alumni?.profilePhoto ? (
-            <Image src={alumni.profilePhoto} alt={alumni.fullName} width={80} height={80} className="object-cover object-top w-full h-full" />
-          ) : (
-            <User size={32} className="text-ohio-gray" />
-          )}
+        <div className="relative flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingPhoto}
+            className="group w-20 h-20 rounded-full overflow-hidden bg-ohio-gray-medium flex items-center justify-center border-4 border-scarlet relative disabled:cursor-wait"
+            title="Click to change profile photo"
+            aria-label="Change profile photo"
+          >
+            {alumni?.profilePhoto ? (
+              <Image
+                src={alumni.profilePhoto}
+                alt={alumni.fullName}
+                width={80}
+                height={80}
+                className="object-cover object-top w-full h-full"
+              />
+            ) : (
+              <User size={32} className="text-ohio-gray" />
+            )}
+            {/* Hover overlay */}
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              {uploadingPhoto ? (
+                <Loader2 size={20} className="text-white animate-spin" />
+              ) : (
+                <Camera size={20} className="text-white" />
+              )}
+            </div>
+            {/* Uploading spinner (always visible while uploading) */}
+            {uploadingPhoto && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <Loader2 size={20} className="text-white animate-spin" />
+              </div>
+            )}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            className="hidden"
+          />
         </div>
         <div>
           <h2 className="text-xl font-bold text-ohio-gray-dark">{alumni?.fullName}</h2>
@@ -152,7 +230,16 @@ export default function MyProfilePage() {
             {alumni?.graduationYear && <span className="badge bg-scarlet text-white">Class of {alumni.graduationYear}</span>}
             {alumni?.degreeEarned && <span className="badge bg-ohio-gray-light text-ohio-gray">{alumni.degreeEarned}</span>}
           </div>
-          <p className="text-xs text-ohio-gray mt-2">Name, graduation year, and degree are managed by your administrator.</p>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingPhoto}
+            className="text-xs text-scarlet hover:underline mt-2 flex items-center gap-1 disabled:opacity-50"
+          >
+            <Camera size={12} />
+            {uploadingPhoto ? 'Uploading…' : (alumni?.profilePhoto ? 'Change photo' : 'Upload photo')}
+          </button>
+          <p className="text-xs text-ohio-gray mt-1">Name, graduation year, and degree are managed by your administrator.</p>
         </div>
       </div>
 
