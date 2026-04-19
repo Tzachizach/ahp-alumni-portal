@@ -5,6 +5,15 @@ import Image from 'next/image';
 import { Alumni } from '@/lib/types';
 import { Heart, User, Search } from 'lucide-react';
 
+function shuffle<T>(arr: T[]): T[] {
+  const out = [...arr];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 export default function ProfessorYoungPage() {
   const [all, setAll] = useState<Alumni[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,8 +24,8 @@ export default function ProfessorYoungPage() {
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          // Only keep alumni who have shared a memory
-          setAll(data.filter((a: Alumni) => a.favoriteMemory?.trim()));
+          // Only keep alumni who have shared a memory, then randomize
+          setAll(shuffle(data.filter((a: Alumni) => a.favoriteMemory?.trim())));
         }
         setLoading(false);
       })
