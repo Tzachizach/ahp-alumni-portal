@@ -5,32 +5,61 @@ import { toast } from 'react-hot-toast';
 import { Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
+type FieldErrors = {
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
+  form?: string;
+};
+
 export default function ChangePasswordPage() {
   const router = useRouter();
   const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [show, setShow] = useState({ current: false, new: false, confirm: false });
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   function toggle(field: 'current' | 'new' | 'confirm') {
     setShow((s) => ({ ...s, [field]: !s[field] }));
   }
 
+  // Clear a field-specific error as the user types (no stale error
+  // messages stuck under fields the user is fixing).
+  function setField(key: 'currentPassword' | 'newPassword' | 'confirmPassword', value: string) {
+    setForm((f) => ({ ...f, [key]: value }));
+    if (errors[key] || errors.form) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        delete next.form;
+        return next;
+      });
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (form.newPassword !== form.confirmPassword) {
-      toast.error('New passwords do not match');
-      return;
-    }
+    // Validate up front and surface inline errors per field
+    // (WCAG 3.3.1 Error identification, 3.3.3 Error suggestion).
+    const next: FieldErrors = {};
     if (form.newPassword.length < 8) {
-      toast.error('New password must be at least 8 characters');
-      return;
+      next.newPassword = 'New password must be at least 8 characters.';
     }
-    if (form.currentPassword === form.newPassword) {
-      toast.error('New password must be different from current password');
+    if (form.newPassword !== form.confirmPassword) {
+      next.confirmPassword = 'Passwords do not match.';
+    }
+    if (form.currentPassword && form.currentPassword === form.newPassword) {
+      next.newPassword = 'New password must be different from current password.';
+    }
+    if (Object.keys(next).length > 0) {
+      setErrors(next);
+      // Toast still announces, but the error is also tied to the offending field.
+      toast.error('Please fix the highlighted fields.');
       return;
     }
 
+    setErrors({});
     setSaving(true);
     try {
       const res = await fetch('/api/auth/change-password', {
@@ -43,13 +72,22 @@ export default function ChangePasswordPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error || 'Failed to change password');
+        const msg = data.error || 'Failed to change password.';
+        // Server-side errors usually relate to the current password.
+        if (/current/i.test(msg)) {
+          setErrors({ currentPassword: msg });
+        } else {
+          setErrors({ form: msg });
+        }
+        toast.error(msg);
       } else {
         toast.success('Password changed successfully!');
         router.push('/profile/me');
       }
     } catch {
-      toast.error('Something went wrong. Please try again.');
+      const msg = 'Something went wrong. Please try again.';
+      setErrors({ form: msg });
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -78,7 +116,14 @@ export default function ChangePasswordPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+          {/* Form-level error */}
+          {errors.form && (
+            <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm">
+              {errors.form}
+            </div>
+          )}
+
           {/* Current Password */}
           <div>
             <label htmlFor="current-password" className="block text-sm font-medium text-ohio-gray-dark mb-1">
@@ -89,10 +134,12 @@ export default function ChangePasswordPage() {
                 id="current-password"
                 type={show.current ? 'text' : 'password'}
                 value={form.currentPassword}
-                onChange={(e) => setForm({ ...form, currentPassword: e.target.value })}
+                onChange={(e) => setField('currentPassword', e.target.value)}
                 required
                 autoComplete="current-password"
-                className="w-full border border-ohio-gray-medium rounded-lg px-3 py-2 pr-10 text-sm placeholder:text-ohio-gray focus:outline-none focus:ring-2 focus:ring-scarlet focus:border-transparent"
+                aria-invalid={!!errors.currentPassword}
+                aria-describedby={errors.currentPassword ? 'current-password-error' : undefined}
+                className={`w-full border rounded-lg px-3 py-2 pr-10 text-sm placeholder:text-ohio-gray focus:outline-none focus:ring-2 focus:ring-scarlet focus:border-transparent ${errors.currentPassword ? 'border-red-500' : 'border-ohio-gray-medium'}`}
                 placeholder="Enter your current password"
               />
               <button
@@ -105,6 +152,11 @@ export default function ChangePasswordPage() {
                 {show.current ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
               </button>
             </div>
+            {errors.currentPassword && (
+              <p id="current-password-error" role="alert" className="mt-1 text-xs text-red-700">
+                {errors.currentPassword}
+              </p>
+            )}
           </div>
 
           {/* New Password */}
@@ -117,11 +169,13 @@ export default function ChangePasswordPage() {
                 id="new-password"
                 type={show.new ? 'text' : 'password'}
                 value={form.newPassword}
-                onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
+                onChange={(e) => setField('newPassword', e.target.value)}
                 required
                 minLength={8}
                 autoComplete="new-password"
-                className="w-full border border-ohio-gray-medium rounded-lg px-3 py-2 pr-10 text-sm placeholder:text-ohio-gray focus:outline-none focus:ring-2 focus:ring-scarlet focus:border-transparent"
+                aria-invalid={!!errors.newPassword}
+                aria-describedby={errors.newPassword ? 'new-password-error' : 'new-password-hint'}
+                className={`w-full border rounded-lg px-3 py-2 pr-10 text-sm placeholder:text-ohio-gray focus:outline-none focus:ring-2 focus:ring-scarlet focus:border-transparent ${errors.newPassword ? 'border-red-500' : 'border-ohio-gray-medium'}`}
                 placeholder="At least 8 characters"
               />
               <button
@@ -134,6 +188,15 @@ export default function ChangePasswordPage() {
                 {show.new ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
               </button>
             </div>
+            {errors.newPassword ? (
+              <p id="new-password-error" role="alert" className="mt-1 text-xs text-red-700">
+                {errors.newPassword}
+              </p>
+            ) : (
+              <p id="new-password-hint" className="mt-1 text-xs text-ohio-gray">
+                Minimum 8 characters.
+              </p>
+            )}
           </div>
 
           {/* Confirm New Password */}
@@ -146,10 +209,12 @@ export default function ChangePasswordPage() {
                 id="confirm-password"
                 type={show.confirm ? 'text' : 'password'}
                 value={form.confirmPassword}
-                onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                onChange={(e) => setField('confirmPassword', e.target.value)}
                 required
                 autoComplete="new-password"
-                className="w-full border border-ohio-gray-medium rounded-lg px-3 py-2 pr-10 text-sm placeholder:text-ohio-gray focus:outline-none focus:ring-2 focus:ring-scarlet focus:border-transparent"
+                aria-invalid={!!errors.confirmPassword}
+                aria-describedby={errors.confirmPassword ? 'confirm-password-error' : undefined}
+                className={`w-full border rounded-lg px-3 py-2 pr-10 text-sm placeholder:text-ohio-gray focus:outline-none focus:ring-2 focus:ring-scarlet focus:border-transparent ${errors.confirmPassword ? 'border-red-500' : 'border-ohio-gray-medium'}`}
                 placeholder="Re-enter your new password"
               />
               <button
@@ -162,6 +227,11 @@ export default function ChangePasswordPage() {
                 {show.confirm ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
               </button>
             </div>
+            {errors.confirmPassword && (
+              <p id="confirm-password-error" role="alert" className="mt-1 text-xs text-red-700">
+                {errors.confirmPassword}
+              </p>
+            )}
           </div>
 
           {/* Password strength hint */}

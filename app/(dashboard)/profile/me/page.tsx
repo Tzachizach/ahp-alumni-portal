@@ -34,6 +34,7 @@ export default function MyProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [form, setForm] = useState<Partial<EditableFields>>({});
+  const [saveError, setSaveError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -109,6 +110,7 @@ export default function MyProfilePage() {
     e.preventDefault();
     if (!alumniId) return;
     setSaving(true);
+    setSaveError(null);
     try {
       const res = await fetch(`/api/alumni/${alumniId}`, {
         method: 'PATCH',
@@ -119,13 +121,16 @@ export default function MyProfilePage() {
       if (!res.ok) {
         const errMsg = data?.error || `HTTP ${res.status}`;
         console.error('[Profile save] server error:', data);
+        setSaveError(errMsg);
         toast.error(`Save failed: ${errMsg}`, { duration: 8000 });
         return;
       }
       toast.success('Profile saved!');
     } catch (err) {
       console.error('[Profile save] network error:', err);
-      toast.error('Network error — could not save.');
+      const msg = 'Network error — could not save.';
+      setSaveError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -267,7 +272,15 @@ export default function MyProfilePage() {
         </div>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6">
+      <form onSubmit={handleSave} className="space-y-6" noValidate>
+        {/* Server-side save error (announced via role=alert; toast still fires) */}
+        {saveError && (
+          <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
+            <strong className="font-semibold">Couldn&apos;t save your profile.</strong>{' '}
+            {saveError}
+          </div>
+        )}
+
         {/* Contact */}
         <div className="card">
           <h2 className="font-bold text-ohio-gray-dark mb-4">Contact Information</h2>

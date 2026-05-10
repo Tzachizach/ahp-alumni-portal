@@ -7,6 +7,7 @@ import {
   LogOut, Menu, X, Shield, Lock, Heart, BookOpen,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useFocusTrap } from '@/lib/useFocusTrap';
 
 const navItems = [
   { href: '/directory', label: 'Directory', icon: Users },
@@ -22,6 +23,10 @@ export default function Navigation() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isAdmin = (session?.user as { role?: string })?.role === 'admin';
+
+  // Trap focus inside the mobile drawer when it is open and restore focus
+  // to the hamburger button on close (WCAG 4.1.2 dialog pattern).
+  const drawerRef = useFocusTrap<HTMLDivElement>(mobileOpen);
 
   // Close the mobile drawer with the Escape key (WCAG 2.1.1).
   useEffect(() => {
@@ -143,6 +148,7 @@ export default function Navigation() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <div
+          ref={drawerRef}
           id="mobile-navigation-drawer"
           className="lg:hidden fixed inset-0 z-30"
           role="dialog"

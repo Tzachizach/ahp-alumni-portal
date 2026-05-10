@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Alumni } from '@/lib/types';
 import { UserPlus, Trash2, KeyRound, Shield, User, CheckSquare, Square, Users as UsersIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useFocusTrap } from '@/lib/useFocusTrap';
 
 interface AuthRecord {
   id: string;
@@ -37,6 +38,20 @@ export default function UsersAdminPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkPassword, setBulkPassword] = useState('');
   const [bulkGranting, setBulkGranting] = useState(false);
+
+  // Focus trap + Escape for the reset-password modal (WCAG 2.1.1, 4.1.2).
+  const resetModalRef = useFocusTrap<HTMLDivElement>(!!resetTarget);
+  useEffect(() => {
+    if (!resetTarget) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setResetTarget(null);
+        setNewPassword('');
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [resetTarget]);
 
   useEffect(() => {
     fetch('/api/admin/users')
@@ -223,6 +238,7 @@ export default function UsersAdminPage() {
       {/* Password reset modal */}
       {resetTarget && (
         <div
+          ref={resetModalRef}
           className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
           role="dialog"
           aria-modal="true"

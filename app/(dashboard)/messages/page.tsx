@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Message, Alumni } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
-import { Send, Inbox, PenSquare, X, ChevronRight } from 'lucide-react';
+import { Send, Inbox, PenSquare, X, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 function MessagesContent() {
@@ -118,9 +118,14 @@ function MessagesContent() {
       </div>
 
       <div className="card p-0 overflow-hidden">
+        {(() => {
+          // On mobile we show one pane at a time. On sm+ both panes are
+          // visible side-by-side as before.
+          const showRightPane = composing || !!selected;
+          return (
         <div className="flex h-[600px]">
           {/* Left pane: list */}
-          <div className="w-full sm:w-80 flex-shrink-0 flex flex-col border-r border-ohio-gray-medium">
+          <div className={`w-full sm:w-80 flex-shrink-0 flex-col border-r border-ohio-gray-medium ${showRightPane ? 'hidden sm:flex' : 'flex'}`}>
             {/* Tabs */}
             <div className="flex border-b border-ohio-gray-medium">
               {(['inbox', 'sent'] as const).map((t) => (
@@ -161,7 +166,19 @@ function MessagesContent() {
           </div>
 
           {/* Right pane: detail or compose */}
-          <div className="flex-1 overflow-y-auto hidden sm:flex flex-col">
+          <div className={`flex-1 overflow-y-auto flex-col ${showRightPane ? 'flex' : 'hidden sm:flex'}`}>
+            {/* Mobile-only "back to list" button */}
+            {showRightPane && (
+              <button
+                type="button"
+                onClick={() => { setSelected(null); setComposing(false); }}
+                className="sm:hidden flex items-center gap-1 text-sm text-ohio-gray hover:text-scarlet px-4 py-3 border-b border-ohio-gray-medium"
+                aria-label="Back to message list"
+              >
+                <ArrowLeft size={16} aria-hidden="true" />
+                Back
+              </button>
+            )}
             {composing ? (
               <div className="flex-1 p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -239,13 +256,15 @@ function MessagesContent() {
             ) : (
               <div className="flex-1 flex items-center justify-center text-ohio-gray">
                 <div className="text-center">
-                  <Inbox size={40} className="mx-auto mb-3 opacity-30" />
+                  <Inbox size={40} className="mx-auto mb-3 opacity-30" aria-hidden="true" />
                   <p className="text-sm">Select a message or compose a new one</p>
                 </div>
               </div>
             )}
           </div>
         </div>
+          );
+        })()}
       </div>
     </div>
   );
