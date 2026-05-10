@@ -59,6 +59,10 @@ export function useFocusTrap<T extends HTMLElement = HTMLElement>(
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.key !== 'Tab') return;
+      // TS doesn't preserve the outer non-null narrowing across the
+      // closure boundary, so re-check here.
+      const c = containerRef.current;
+      if (!c) return;
       const focusables = getFocusable();
       if (focusables.length === 0) {
         e.preventDefault();
@@ -67,14 +71,15 @@ export function useFocusTrap<T extends HTMLElement = HTMLElement>(
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
       const activeEl = document.activeElement as HTMLElement | null;
+      const inside = activeEl ? c.contains(activeEl) : false;
 
       if (e.shiftKey) {
-        if (activeEl === first || !container.contains(activeEl)) {
+        if (activeEl === first || !inside) {
           e.preventDefault();
           last.focus();
         }
       } else {
-        if (activeEl === last || !container.contains(activeEl)) {
+        if (activeEl === last || !inside) {
           e.preventDefault();
           first.focus();
         }
