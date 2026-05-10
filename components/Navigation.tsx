@@ -4,13 +4,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Users, MessageCircle, Star, Calendar,
-  LogOut, Menu, X, Shield, Lock, Heart, BookOpen,
+  LogOut, Menu, X, Shield, Lock, Heart, BookOpen, MapPin,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFocusTrap } from '@/lib/useFocusTrap';
 
 const navItems = [
   { href: '/directory', label: 'Directory', icon: Users },
+  { href: '/locations', label: 'Locations', icon: MapPin },
   { href: '/messages', label: 'Messages', icon: MessageCircle },
   { href: '/groups', label: 'Interest Groups', icon: Star },
   { href: '/events', label: 'Events', icon: Calendar },
