@@ -1,5 +1,5 @@
 'use client';
-import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
+import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 import { STATE_FIPS_TO_CODE, STATE_CODE_TO_NAME } from '@/lib/usStates';
 
 // Albers-USA projection topojson with Hawaii and Alaska repositioned
@@ -7,15 +7,30 @@ import { STATE_FIPS_TO_CODE, STATE_CODE_TO_NAME } from '@/lib/usStates';
 const US_GEO_URL =
   'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json';
 
+export interface CityMarker {
+  /** Stable id derived from "City|ST". */
+  id: string;
+  city: string;
+  state: string;
+  lat: number;
+  lng: number;
+  count: number;
+}
+
 interface Props {
   /** Map of state code -> alumni count. */
   countsByState: Record<string, number>;
+  /** Optional city dots to overlay on the choropleth. */
+  cityMarkers?: CityMarker[];
   /** Currently hovered state code (or null). */
   hoveredState: string | null;
   /** Currently selected/locked state code (or null). */
   selectedState: string | null;
-  onHover: (stateCode: string | null) => void;
-  onSelect: (stateCode: string | null) => void;
+  /** Currently selected city id (or null) — independent of state selection. */
+  selectedCityId?: string | null;
+  onHoverState: (stateCode: string | null) => void;
+  onSelectState: (stateCode: string | null) => void;
+  onSelectCity?: (cityId: string | null) => void;
 }
 
 /**
@@ -33,17 +48,29 @@ function colorForCount(count: number, max: number): string {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
+/** Marker radius in SVG units, scaled by alumni count (log-ish). */
+function markerRadius(count: number, max: number): number {
+  if (max <= 0) return 3;
+  // 3px for 1 alum, ~12px for the max.
+  const t = Math.min(1, Math.log(count + 1) / Math.log(max + 1));
+  return 3 + 9 * t;
+}
+
 export default function UsLocationMap({
   countsByState,
+  cityMarkers = [],
   hoveredState,
   selectedState,
-  onHover,
-  onSelect,
+  selectedCityId = null,
+  onHoverState,
+  onSelectState,
+  onSelectCity,
 }: Props) {
-  const max = Math.max(0, ...Object.values(countsByState));
+  const stateMax = Math.max(0, ...Object.values(countsByState));
+  const cityMax = Math.max(0, ...cityMarkers.map((m) => m.count));
 
   return (
-    <div className="w-full" role="img" aria-label="Map of the United States showing alumni distribution by state">
+    <div className="w-full" role="img" aria-label="Map of the United States showing alumni distribution by state and city">
       <ComposableMap
         projection="geoAlbersUsa"
         projectionConfig={{ scale: 1000 }}
@@ -51,6 +78,7 @@ export default function UsLocationMap({
         height={610}
         style={{ width: '100%', height: 'auto' }}
       >
+        {/* State choropleth */}
         <Geographies geography={US_GEO_URL}>
           {({ geographies }) =>
             geographies.map((geo) => {
@@ -64,12 +92,12 @@ export default function UsLocationMap({
                 <Geography
                   key={geo.rsmKey}
                   geography={geo}
-                  fill={colorForCount(count, max)}
+                  fill={colorForCount(count, stateMax)}
                   stroke={isSelected ? '#BB0000' : '#FFFFFF'}
                   strokeWidth={isSelected ? 2 : 0.75}
-                  onMouseEnter={() => onHover(code ?? null)}
-                  onMouseLeave={() => onHover(null)}
-                  onClick={() => onSelect(code ?? null)}
+                  onMouseEnter={() => onHoverState(code ?? null)}
+                  onMouseLeave={() => onHoverState(null)}
+                  onClick={() => onSelectState(code ?? null)}
                   style={{
                     default: { outline: 'none', cursor: code ? 'pointer' : 'default' },
                     hover: {
@@ -79,8 +107,6 @@ export default function UsLocationMap({
                     },
                     pressed: { outline: 'none' },
                   }}
-                  // Native title shows on hover for sighted users; full info
-                  // lives in the side panel.
                   aria-label={
                     count === 0
                       ? `${stateName}: no alumni`
@@ -98,6 +124,30 @@ export default function UsLocationMap({
             })
           }
         </Geographies>
+
+        {/* City dots — drawn on top of the choropleth */}
+        {cityMarkers.map((m) => {
+          const r = markerRadius(m.count, cityMax);
+          const isSelected = selectedCityId === m.id;
+          return (
+            <Marker key={m.id} coordinates={[m.lng, m.lat]}>
+              <circle
+                r={r}
+                fill="#7A0000"
+                stroke="#FFFFFF"
+                strokeWidth={isSelected ? 2.5 : 1.25}
+                opacity={isSelected ? 1 : 0.85}
+                onClick={() => onSelectCity?.(isSelected ? null : m.id)}
+                style={{ cursor: 'pointer' }}
+                aria-label={`${m.city}, ${m.state}: ${m.count} ${m.count === 1 ? 'alum' : 'alumni'}`}
+              >
+                <title>
+                  {m.city}, {m.state} — {m.count} {m.count === 1 ? 'alum' : 'alumni'}
+                </title>
+              </circle>
+            </Marker>
+          );
+        })}
       </ComposableMap>
     </div>
   );
