@@ -56,13 +56,17 @@ export default function AHPMemoriesPage() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ohio-gray" />
+        <label htmlFor="ahp-memories-search" className="sr-only">
+          Search AHP memories or names
+        </label>
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ohio-gray" aria-hidden="true" />
         <input
-          type="text"
+          id="ahp-memories-search"
+          type="search"
           placeholder="Search memories or names…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2.5 border border-ohio-gray-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-scarlet focus:border-transparent bg-white"
+          className="w-full pl-9 pr-4 py-2.5 border border-ohio-gray-medium rounded-lg text-sm placeholder:text-ohio-gray focus:outline-none focus:ring-2 focus:ring-scarlet focus:border-transparent bg-white"
         />
       </div>
 

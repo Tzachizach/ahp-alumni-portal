@@ -110,8 +110,13 @@ export default function DirectoryPage() {
       {/* Search + Filter bar */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-ohio-gray" />
+          <label htmlFor="directory-search" className="sr-only">
+            Search alumni by name, employer, expertise, or location
+          </label>
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-ohio-gray" aria-hidden="true" />
           <input
+            id="directory-search"
+            type="search"
             className="input pl-9"
             placeholder="Search by name, employer, expertise, location…"
             value={search}
@@ -119,50 +124,58 @@ export default function DirectoryPage() {
           />
         </div>
         <button
+          type="button"
           onClick={() => setShowFilters(!showFilters)}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
             hasFilters
               ? 'border-scarlet bg-scarlet-light text-scarlet'
               : 'border-ohio-gray-medium bg-white text-ohio-gray hover:border-scarlet'
           }`}
+          aria-expanded={showFilters}
+          aria-controls="directory-filter-panel"
         >
-          <Filter size={16} />
+          <Filter size={16} aria-hidden="true" />
           Filters {hasFilters && `(${[yearFilter, networkingFilter, interestFilter, locationFilter].filter(Boolean).length})`}
         </button>
         {hasFilters && (
-          <button onClick={clearFilters} className="flex items-center gap-1 text-sm text-ohio-gray hover:text-scarlet">
-            <X size={14} /> Clear
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="flex items-center gap-1 text-sm text-ohio-gray hover:text-scarlet"
+            aria-label="Clear all filters"
+          >
+            <X size={14} aria-hidden="true" /> Clear
           </button>
         )}
       </div>
 
       {/* Filter panel */}
       {showFilters && (
-        <div className="card mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div id="directory-filter-panel" className="card mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div>
-            <label className="label">Graduation Year</label>
-            <select className="input" value={yearFilter} onChange={(e) => setYearFilter(e.target.value)}>
+            <label htmlFor="filter-year" className="label">Graduation Year</label>
+            <select id="filter-year" className="input" value={yearFilter} onChange={(e) => setYearFilter(e.target.value)}>
               <option value="">All years</option>
               {years.map((y) => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
           <div>
-            <label className="label">Networking Style</label>
-            <select className="input" value={networkingFilter} onChange={(e) => setNetworkingFilter(e.target.value)}>
+            <label htmlFor="filter-networking" className="label">Networking Style</label>
+            <select id="filter-networking" className="input" value={networkingFilter} onChange={(e) => setNetworkingFilter(e.target.value)}>
               <option value="">All</option>
               {networkingCategories.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div>
-            <label className="label">Interest Group</label>
-            <select className="input" value={interestFilter} onChange={(e) => setInterestFilter(e.target.value)}>
+            <label htmlFor="filter-interest" className="label">Interest Group</label>
+            <select id="filter-interest" className="input" value={interestFilter} onChange={(e) => setInterestFilter(e.target.value)}>
               <option value="">All</option>
               {interestGroups.map((g) => <option key={g} value={g}>{g}</option>)}
             </select>
           </div>
           <div>
-            <label className="label">Location</label>
-            <select className="input" value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)}>
+            <label htmlFor="filter-location" className="label">Location</label>
+            <select id="filter-location" className="input" value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)}>
               <option value="">All locations</option>
               {locations.map((l) => <option key={l} value={l}>{l}</option>)}
             </select>

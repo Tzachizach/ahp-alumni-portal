@@ -6,7 +6,7 @@ import {
   Users, MessageCircle, Star, Calendar,
   LogOut, Menu, X, Shield, Lock, Heart, BookOpen,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const navItems = [
   { href: '/directory', label: 'Directory', icon: Users },
@@ -22,6 +22,16 @@ export default function Navigation() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isAdmin = (session?.user as { role?: string })?.role === 'admin';
+
+  // Close the mobile drawer with the Escape key (WCAG 2.1.1).
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mobileOpen]);
 
   function NavLink({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) {
     const active = pathname === href || pathname.startsWith(href + '/');
@@ -118,15 +128,34 @@ export default function Navigation() {
           </div>
           <span className="font-bold text-ohio-gray-dark">AHP Alumni</span>
         </Link>
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 rounded-lg hover:bg-ohio-gray-light">
-          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+        <button
+          type="button"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="p-2 rounded-lg hover:bg-ohio-gray-light"
+          aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-navigation-drawer"
+        >
+          {mobileOpen ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
         </button>
       </div>
 
       {/* Mobile drawer */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-30">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
+        <div
+          id="mobile-navigation-drawer"
+          className="lg:hidden fixed inset-0 z-30"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+        >
+          {/* Backdrop — keyboard-reachable button so screen-reader users can close it. */}
+          <button
+            type="button"
+            aria-label="Close navigation menu"
+            onClick={() => setMobileOpen(false)}
+            className="absolute inset-0 bg-black/40 cursor-default"
+          />
           <aside className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-xl">
             <SidebarContent />
           </aside>

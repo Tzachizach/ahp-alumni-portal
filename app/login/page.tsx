@@ -48,15 +48,16 @@ export default function LoginPage() {
           <h2 className="text-xl font-semibold text-ohio-gray-dark mb-6 text-center">Sign In</h2>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-5 text-sm">
+            <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-5 text-sm">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="label">Email Address</label>
+              <label htmlFor="login-email" className="label">Email Address</label>
               <input
+                id="login-email"
                 type="email"
                 className="input"
                 placeholder="you@example.com"
@@ -67,8 +68,9 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label className="label">Password</label>
+              <label htmlFor="login-password" className="label">Password</label>
               <input
+                id="login-password"
                 type="password"
                 className="input"
                 placeholder="••••••••"

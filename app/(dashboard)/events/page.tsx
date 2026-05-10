@@ -126,11 +126,13 @@ export default function EventsPage() {
 
           {isAdmin && (
             <button
+              type="button"
               onClick={() => handleDelete(event.id)}
               className="text-ohio-gray hover:text-scarlet transition-colors p-1"
+              aria-label={`Delete event: ${event.title}`}
               title="Delete event"
             >
-              <Trash2 size={16} />
+              <Trash2 size={16} aria-hidden="true" />
             </button>
           )}
         </div>
@@ -170,20 +172,20 @@ export default function EventsPage() {
           <form onSubmit={handleCreate} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className="label">Event Title</label>
-                <input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+                <label htmlFor="event-title" className="label">Event Title</label>
+                <input id="event-title" className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
               </div>
               <div>
-                <label className="label">Date</label>
-                <input type="date" className="input" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} required />
+                <label htmlFor="event-date" className="label">Date</label>
+                <input id="event-date" type="date" className="input" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} required />
               </div>
               <div>
-                <label className="label">Location</label>
-                <input className="input" placeholder="City, State or Virtual" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+                <label htmlFor="event-location" className="label">Location</label>
+                <input id="event-location" className="input" placeholder="City, State or Virtual" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
               </div>
               <div className="sm:col-span-2">
-                <label className="label">Description</label>
-                <textarea className="input resize-none" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                <label htmlFor="event-description" className="label">Description</label>
+                <textarea id="event-description" className="input resize-none" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </div>
             </div>
             <div className="flex gap-3">

@@ -166,14 +166,20 @@ function MessagesContent() {
               <div className="flex-1 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-bold text-ohio-gray-dark">New Message</h2>
-                  <button onClick={() => setComposing(false)} className="text-ohio-gray hover:text-ohio-gray-dark">
-                    <X size={20} />
+                  <button
+                    type="button"
+                    onClick={() => setComposing(false)}
+                    className="text-ohio-gray hover:text-ohio-gray-dark"
+                    aria-label="Close compose window"
+                  >
+                    <X size={20} aria-hidden="true" />
                   </button>
                 </div>
                 <form onSubmit={handleSend} className="space-y-4">
                   <div>
-                    <label className="label">To</label>
+                    <label htmlFor="msg-to" className="label">To</label>
                     <select
+                      id="msg-to"
                       className="input"
                       value={toEmail}
                       onChange={(e) => {
@@ -193,15 +199,15 @@ function MessagesContent() {
                     </select>
                   </div>
                   <div>
-                    <label className="label">Subject</label>
-                    <input className="input" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="(optional)" />
+                    <label htmlFor="msg-subject" className="label">Subject</label>
+                    <input id="msg-subject" className="input" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="(optional)" />
                   </div>
                   <div>
-                    <label className="label">Message</label>
-                    <textarea className="input resize-none" rows={8} value={body} onChange={(e) => setBody(e.target.value)} required />
+                    <label htmlFor="msg-body" className="label">Message</label>
+                    <textarea id="msg-body" className="input resize-none" rows={8} value={body} onChange={(e) => setBody(e.target.value)} required />
                   </div>
                   <button type="submit" disabled={sending} className="btn-primary flex items-center gap-2">
-                    <Send size={15} /> {sending ? 'Sending…' : 'Send'}
+                    <Send size={15} aria-hidden="true" /> {sending ? 'Sending…' : 'Send'}
                   </button>
                 </form>
               </div>

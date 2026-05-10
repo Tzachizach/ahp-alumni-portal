@@ -180,8 +180,9 @@ export default function UsersAdminPage() {
           <form onSubmit={handleCreate} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className="label">Link to Alumni Record</label>
+                <label htmlFor="create-alumni" className="label">Link to Alumni Record</label>
                 <select
+                  id="create-alumni"
                   className="input"
                   value={form.alumniRecordId}
                   onChange={(e) => handleAlumniSelect(e.target.value)}
@@ -196,16 +197,16 @@ export default function UsersAdminPage() {
                 </select>
               </div>
               <div>
-                <label className="label">Login Email</label>
-                <input type="email" className="input" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+                <label htmlFor="create-email" className="label">Login Email</label>
+                <input id="create-email" type="email" className="input" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required autoComplete="off" />
               </div>
               <div>
-                <label className="label">Temporary Password</label>
-                <input type="text" className="input" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Min. 8 characters" minLength={8} required />
+                <label htmlFor="create-password" className="label">Temporary Password</label>
+                <input id="create-password" type="text" className="input" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Min. 8 characters" minLength={8} required autoComplete="off" />
               </div>
               <div>
-                <label className="label">Role</label>
-                <select className="input" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as 'alumni' | 'admin' })}>
+                <label htmlFor="create-role" className="label">Role</label>
+                <select id="create-role" className="input" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as 'alumni' | 'admin' })}>
                   <option value="alumni">Alumni</option>
                   <option value="admin">Admin</option>
                 </select>
@@ -221,14 +222,19 @@ export default function UsersAdminPage() {
 
       {/* Password reset modal */}
       {resetTarget && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reset-pw-heading"
+        >
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
-            <h2 className="font-bold text-ohio-gray-dark mb-1">Reset Password</h2>
+            <h2 id="reset-pw-heading" className="font-bold text-ohio-gray-dark mb-1">Reset Password</h2>
             <p className="text-sm text-ohio-gray mb-4">For: {resetTarget.alumniName}</p>
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div>
-                <label className="label">New Password</label>
-                <input type="text" className="input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min. 8 characters" minLength={8} required />
+                <label htmlFor="reset-new-pw" className="label">New Password</label>
+                <input id="reset-new-pw" type="text" className="input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min. 8 characters" minLength={8} required autoComplete="off" />
               </div>
               <div className="flex gap-3">
                 <button type="submit" disabled={resetting} className="btn-primary">{resetting ? 'Resetting…' : 'Reset Password'}</button>
@@ -318,8 +324,9 @@ export default function UsersAdminPage() {
           {selectedIds.size > 0 && (
             <form onSubmit={handleBulkGrant} className="card mb-4 flex flex-col sm:flex-row items-start sm:items-end gap-4">
               <div className="flex-1">
-                <label className="label">Temporary Password for Selected ({selectedIds.size})</label>
+                <label htmlFor="bulk-password" className="label">Temporary Password for Selected ({selectedIds.size})</label>
                 <input
+                  id="bulk-password"
                   type="text"
                   className="input"
                   value={bulkPassword}
@@ -327,6 +334,7 @@ export default function UsersAdminPage() {
                   placeholder="Min. 8 characters — all selected get this password"
                   minLength={8}
                   required
+                  autoComplete="off"
                 />
                 <p className="text-xs text-ohio-gray mt-1">Users will be required to change this on first login.</p>
               </div>
@@ -335,7 +343,7 @@ export default function UsersAdminPage() {
                 disabled={bulkGranting || bulkPassword.length < 8}
                 className="btn-primary flex items-center gap-2 whitespace-nowrap"
               >
-                <UsersIcon size={16} />
+                <UsersIcon size={16} aria-hidden="true" />
                 {bulkGranting ? 'Granting…' : `Grant Access to ${selectedIds.size}`}
               </button>
             </form>
@@ -350,11 +358,13 @@ export default function UsersAdminPage() {
                       type="button"
                       onClick={toggleAll}
                       className="text-ohio-gray hover:text-scarlet transition-colors"
+                      aria-label={selectedIds.size === alumniWithoutAccounts.length ? 'Deselect all alumni' : 'Select all alumni'}
+                      aria-pressed={selectedIds.size === alumniWithoutAccounts.length && alumniWithoutAccounts.length > 0}
                       title={selectedIds.size === alumniWithoutAccounts.length ? 'Deselect all' : 'Select all'}
                     >
                       {selectedIds.size === alumniWithoutAccounts.length && alumniWithoutAccounts.length > 0
-                        ? <CheckSquare size={18} className="text-scarlet" />
-                        : <Square size={18} />}
+                        ? <CheckSquare size={18} className="text-scarlet" aria-hidden="true" />
+                        : <Square size={18} aria-hidden="true" />}
                     </button>
                   </th>
                   <th className="text-left px-4 py-3 font-semibold text-ohio-gray">Name</th>
@@ -378,25 +388,29 @@ export default function UsersAdminPage() {
                           type="button"
                           onClick={() => toggleSelect(a.id)}
                           className="text-ohio-gray hover:text-scarlet transition-colors"
+                          aria-label={`${selectedIds.has(a.id) ? 'Deselect' : 'Select'} ${a.fullName}`}
+                          aria-pressed={selectedIds.has(a.id)}
                         >
                           {selectedIds.has(a.id)
-                            ? <CheckSquare size={18} className="text-scarlet" />
-                            : <Square size={18} />}
+                            ? <CheckSquare size={18} className="text-scarlet" aria-hidden="true" />
+                            : <Square size={18} aria-hidden="true" />}
                         </button>
                       </td>
                       <td className="px-4 py-3 font-medium text-ohio-gray-dark">{a.fullName}</td>
-                      <td className="px-4 py-3 text-ohio-gray">{a.email || <span className="italic text-ohio-gray/50">no email</span>}</td>
+                      <td className="px-4 py-3 text-ohio-gray">{a.email || <span className="italic text-ohio-gray">no email</span>}</td>
                       <td className="px-4 py-3 text-ohio-gray">{a.graduationYear}</td>
                       <td className="px-4 py-3">
                         <button
+                          type="button"
                           onClick={() => {
                             handleAlumniSelect(a.id);
                             setShowForm(true);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                           }}
                           className="text-xs text-scarlet hover:underline flex items-center gap-1"
+                          aria-label={`Create individual account for ${a.fullName}`}
                         >
-                          <UserPlus size={12} /> Individual
+                          <UserPlus size={12} aria-hidden="true" /> Individual
                         </button>
                       </td>
                     </tr>

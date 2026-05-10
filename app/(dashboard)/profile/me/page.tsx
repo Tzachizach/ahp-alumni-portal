@@ -131,39 +131,63 @@ export default function MyProfilePage() {
     }
   }
 
-  const renderInput = (label: string, field: FieldKey, type = 'text') => (
-    <div>
-      <label className="label">{label}</label>
-      <input
-        type={type}
-        className="input"
-        value={form[field] || ''}
-        onChange={(e) => set(field, e.target.value)}
-      />
-    </div>
-  );
+  // Convert a field key into a stable DOM-safe id for label/input association.
+  const idFor = (field: string) =>
+    'profile-' + field.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
-  const renderTextarea = (label: string, field: FieldKey, rows = 3) => (
-    <div>
-      <label className="label">{label}</label>
-      <textarea
-        className="input resize-none"
-        rows={rows}
-        value={form[field] || ''}
-        onChange={(e) => set(field, e.target.value)}
-      />
-    </div>
-  );
-
-  const renderReadOnly = (label: string, value: string | undefined, hint?: string) => (
-    <div>
-      <label className="label">{label}</label>
-      <div className="input bg-ohio-gray-light/50 text-ohio-gray whitespace-pre-wrap min-h-[2.5rem]">
-        {value || <span className="italic text-ohio-gray/60">—</span>}
+  const renderInput = (
+    label: string,
+    field: FieldKey,
+    type = 'text',
+    autoComplete?: string,
+  ) => {
+    const id = idFor(field);
+    return (
+      <div>
+        <label htmlFor={id} className="label">{label}</label>
+        <input
+          id={id}
+          type={type}
+          autoComplete={autoComplete}
+          className="input"
+          value={form[field] || ''}
+          onChange={(e) => set(field, e.target.value)}
+        />
       </div>
-      {hint && <p className="text-xs text-ohio-gray mt-1">{hint}</p>}
-    </div>
-  );
+    );
+  };
+
+  const renderTextarea = (label: string, field: FieldKey, rows = 3) => {
+    const id = idFor(field);
+    return (
+      <div>
+        <label htmlFor={id} className="label">{label}</label>
+        <textarea
+          id={id}
+          className="input resize-none"
+          rows={rows}
+          value={form[field] || ''}
+          onChange={(e) => set(field, e.target.value)}
+        />
+      </div>
+    );
+  };
+
+  const renderReadOnly = (label: string, value: string | undefined, hint?: string) => {
+    const id = `readonly-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+    return (
+      <div>
+        <span id={id} className="label">{label}</span>
+        <div
+          aria-labelledby={id}
+          className="input bg-ohio-gray-light text-ohio-gray whitespace-pre-wrap min-h-[2.5rem]"
+        >
+          {value || <span className="italic text-ohio-gray">—</span>}
+        </div>
+        {hint && <p className="text-xs text-ohio-gray mt-1">{hint}</p>}
+      </div>
+    );
+  };
 
   if (loading) return (
     <div className="animate-pulse space-y-6">
@@ -200,18 +224,18 @@ export default function MyProfilePage() {
             ) : (
               <User size={32} className="text-ohio-gray" />
             )}
-            {/* Hover overlay */}
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            {/* Hover/focus overlay — also triggers on keyboard focus (WCAG 1.4.13) */}
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity flex items-center justify-center">
               {uploadingPhoto ? (
-                <Loader2 size={20} className="text-white animate-spin" />
+                <Loader2 size={20} className="text-white animate-spin" aria-hidden="true" />
               ) : (
-                <Camera size={20} className="text-white" />
+                <Camera size={20} className="text-white" aria-hidden="true" />
               )}
             </div>
             {/* Uploading spinner (always visible while uploading) */}
             {uploadingPhoto && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <Loader2 size={20} className="text-white animate-spin" />
+                <Loader2 size={20} className="text-white animate-spin" aria-hidden="true" />
               </div>
             )}
           </button>
@@ -248,10 +272,10 @@ export default function MyProfilePage() {
         <div className="card">
           <h2 className="font-bold text-ohio-gray-dark mb-4">Contact Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {renderInput('Phone Number', 'Phone Number', 'tel')}
-            {renderInput('Location (City, State)', 'Location')}
+            {renderInput('Phone Number', 'Phone Number', 'tel', 'tel')}
+            {renderInput('Location (City, State)', 'Location', 'text', 'address-level2')}
             <div className="sm:col-span-2">
-              {renderInput('LinkedIn URL', 'LinkedIn', 'url')}
+              {renderInput('LinkedIn URL', 'LinkedIn', 'url', 'url')}
             </div>
           </div>
         </div>
@@ -260,8 +284,8 @@ export default function MyProfilePage() {
         <div className="card">
           <h2 className="font-bold text-ohio-gray-dark mb-4">Career</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {renderInput('Current Job Title', 'Current Job Title')}
-            {renderInput('Current Employer', 'Current Employer')}
+            {renderInput('Current Job Title', 'Current Job Title', 'text', 'organization-title')}
+            {renderInput('Current Employer', 'Current Employer', 'text', 'organization')}
             {renderInput('Previous Job Title', 'Previous Job Title (s)')}
             {renderInput('Previous Employer', 'Previous Employer (s)')}
           </div>

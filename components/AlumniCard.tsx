@@ -17,9 +17,10 @@ export default function AlumniCard({ alumni }: { alumni: Alumni }) {
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
             className="absolute top-3 right-3 p-1.5 rounded-md text-ohio-gray hover:text-scarlet hover:bg-scarlet-light transition-colors"
+            aria-label={`LinkedIn profile of ${alumni.fullName} (opens in new tab)`}
             title="View LinkedIn profile"
           >
-            <Linkedin size={16} />
+            <Linkedin size={16} aria-hidden="true" />
           </a>
         )}
         {/* Photo */}
@@ -45,8 +46,10 @@ export default function AlumniCard({ alumni }: { alumni: Alumni }) {
             </h3>
             {alumni.graduationYear && (
               <button
+                type="button"
                 onClick={(e) => { e.preventDefault(); router.push(`/directory?year=${alumni.graduationYear}`); }}
                 className="badge bg-scarlet-light text-scarlet mt-1 hover:bg-scarlet hover:text-white transition-colors cursor-pointer"
+                aria-label={`Filter directory by Class of ${alumni.graduationYear}`}
               >
                 Class of {alumni.graduationYear}
               </button>
@@ -66,10 +69,12 @@ export default function AlumniCard({ alumni }: { alumni: Alumni }) {
           )}
           {alumni.location && (
             <button
+              type="button"
               onClick={(e) => { e.preventDefault(); router.push(`/directory?location=${encodeURIComponent(alumni.location)}`); }}
               className="flex items-center gap-2 text-sm text-ohio-gray hover:text-scarlet transition-colors text-left"
+              aria-label={`Filter directory by location: ${alumni.location}`}
             >
-              <MapPin size={14} className="flex-shrink-0 text-scarlet" />
+              <MapPin size={14} className="flex-shrink-0 text-scarlet" aria-hidden="true" />
               <span className="truncate">{alumni.location}</span>
             </button>
           )}

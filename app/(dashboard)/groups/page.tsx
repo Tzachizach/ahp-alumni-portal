@@ -99,26 +99,33 @@ export default function GroupsPage() {
       <div className="space-y-4">
         {groups.map((group) => {
           const isOpen = openGroups.has(group.name);
+          // Build a stable, DOM-safe id from the group name for aria-controls.
+          const panelId = `group-panel-${group.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
           return (
             <div key={group.name} className="card p-0 overflow-hidden">
               {/* Group header */}
               <button
+                type="button"
                 onClick={() => toggleGroup(group.name)}
                 className="w-full flex items-center justify-between px-6 py-4 hover:bg-ohio-gray-light transition-colors"
+                aria-expanded={isOpen}
+                aria-controls={panelId}
               >
                 <div className="flex items-center gap-3">
                   <span className={`badge text-sm py-1 px-3 ${colorFor(group.name)}`}>{group.name}</span>
                   <span className="flex items-center gap-1 text-sm text-ohio-gray">
-                    <Users size={14} />
+                    <Users size={14} aria-hidden="true" />
                     {group.members.length} {group.members.length === 1 ? 'member' : 'members'}
                   </span>
                 </div>
-                {isOpen ? <ChevronUp size={18} className="text-ohio-gray" /> : <ChevronDown size={18} className="text-ohio-gray" />}
+                {isOpen
+                  ? <ChevronUp size={18} className="text-ohio-gray" aria-hidden="true" />
+                  : <ChevronDown size={18} className="text-ohio-gray" aria-hidden="true" />}
               </button>
 
               {/* Member grid */}
               {isOpen && (
-                <div className="border-t border-ohio-gray-medium px-6 pb-6 pt-4">
+                <div id={panelId} className="border-t border-ohio-gray-medium px-6 pb-6 pt-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {group.members.map((a) => (
                       <AlumniCard key={a.id} alumni={a} />
