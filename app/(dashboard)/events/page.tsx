@@ -1,231 +1,32 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { AlumniEvent } from '@/lib/types';
-import { format, parseISO, isPast } from 'date-fns';
-import { Calendar, MapPin, Users, CheckCircle, Plus, Trash2 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import Link from 'next/link';
+import { PauseCircle, Users } from 'lucide-react';
 
+/**
+ * Events page is paused — the program isn't actively running alumni
+ * events through the portal yet. The route still resolves so existing
+ * bookmarks don't 404, but the page is no longer linked from the
+ * navigation.
+ */
 export default function EventsPage() {
-  const { data: session } = useSession();
-  const [events, setEvents] = useState<AlumniEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  const myEmail = session?.user?.email || '';
-  const isAdmin = (session?.user as { role?: string })?.role === 'admin';
-
-  // New event form
-  const [form, setForm] = useState({ title: '', description: '', eventDate: '', location: '' });
-
-  useEffect(() => {
-    fetch('/api/events')
-      .then((r) => r.json())
-      .then((data) => { setEvents(data); setLoading(false); });
-  }, []);
-
-  async function handleRsvp(event: AlumniEvent) {
-    const alreadyRsvpd = event.rsvpList.includes(myEmail);
-    const updated = alreadyRsvpd
-      ? event.rsvpList.filter((e) => e !== myEmail)
-      : [...event.rsvpList, myEmail];
-
-    setEvents((prev) => prev.map((e) => e.id === event.id ? { ...e, rsvpList: updated } : e));
-
-    try {
-      await fetch('/api/events', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId: event.id, rsvpList: updated }),
-      });
-      toast.success(alreadyRsvpd ? 'RSVP cancelled' : "You're going!");
-    } catch {
-      toast.error('Failed to update RSVP');
-    }
-  }
-
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      const res = await fetch('/api/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) throw new Error();
-      const created = await res.json();
-      setEvents((prev) => [...prev, created].sort((a, b) => a.eventDate.localeCompare(b.eventDate)));
-      setForm({ title: '', description: '', eventDate: '', location: '' });
-      setShowForm(false);
-      toast.success('Event created!');
-    } catch {
-      toast.error('Failed to create event.');
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function handleDelete(eventId: string) {
-    if (!confirm('Delete this event?')) return;
-    try {
-      await fetch('/api/events', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId }),
-      });
-      setEvents((prev) => prev.filter((e) => e.id !== eventId));
-      toast.success('Event deleted.');
-    } catch {
-      toast.error('Failed to delete event.');
-    }
-  }
-
-  const upcoming = events.filter((e) => !isPast(parseISO(e.eventDate)));
-  const past = events.filter((e) => isPast(parseISO(e.eventDate)));
-
-  function EventCard({ event }: { event: AlumniEvent }) {
-    const gone = isPast(parseISO(event.eventDate));
-    const rsvpd = event.rsvpList.includes(myEmail);
-    return (
-      <div className={`card ${gone ? 'opacity-70' : ''}`}>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-bold text-ohio-gray-dark text-lg">{event.title}</h3>
-              {rsvpd && !gone && (
-                <span className="badge bg-green-100 text-green-700 flex items-center gap-1">
-                  <CheckCircle size={12} /> Going
-                </span>
-              )}
-              {gone && <span className="badge bg-ohio-gray-light text-ohio-gray">Past</span>}
-            </div>
-
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-ohio-gray">
-              <span className="flex items-center gap-1.5">
-                <Calendar size={14} className="text-scarlet" />
-                {format(parseISO(event.eventDate), 'EEEE, MMMM d, yyyy')}
-              </span>
-              {event.location && (
-                <span className="flex items-center gap-1.5">
-                  <MapPin size={14} className="text-scarlet" />
-                  {event.location}
-                </span>
-              )}
-              <span className="flex items-center gap-1.5">
-                <Users size={14} className="text-scarlet" />
-                {event.rsvpList.length} {event.rsvpList.length === 1 ? 'attendee' : 'attendees'}
-              </span>
-            </div>
-
-            {event.description && (
-              <p className="mt-3 text-sm text-ohio-gray-dark">{event.description}</p>
-            )}
-          </div>
-
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => handleDelete(event.id)}
-              className="text-ohio-gray hover:text-scarlet transition-colors p-1"
-              aria-label={`Delete event: ${event.title}`}
-              title="Delete event"
-            >
-              <Trash2 size={16} aria-hidden="true" />
-            </button>
-          )}
-        </div>
-
-        {!gone && (
-          <div className="mt-4 pt-4 border-t border-ohio-gray-medium">
-            <button
-              onClick={() => handleRsvp(event)}
-              className={rsvpd ? 'btn-secondary text-sm' : 'btn-primary text-sm'}
-            >
-              {rsvpd ? 'Cancel RSVP' : 'RSVP'}
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-ohio-gray-dark">Events</h1>
-          <p className="text-ohio-gray mt-1">Alumni gatherings and program events</p>
+    <div className="max-w-2xl mx-auto py-10">
+      <div className="card text-center">
+        <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-scarlet/10 flex items-center justify-center">
+          <PauseCircle size={28} className="text-scarlet" aria-hidden="true" />
         </div>
-        {isAdmin && (
-          <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2">
-            <Plus size={16} /> New Event
-          </button>
-        )}
+        <h1 className="text-xl font-bold text-ohio-gray-dark mb-2">
+          Events are paused
+        </h1>
+        <p className="text-sm text-ohio-gray mb-6">
+          We&apos;re not running alumni events through the portal at the moment.
+          This page will come back when the program is ready to publish them.
+        </p>
+        <Link href="/directory" className="btn-primary inline-flex items-center gap-2">
+          <Users size={16} aria-hidden="true" />
+          Browse the Directory instead
+        </Link>
       </div>
-
-      {/* Create event form (admin only) */}
-      {showForm && (
-        <div className="card mb-6">
-          <h2 className="font-bold text-ohio-gray-dark mb-4">Create New Event</h2>
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="sm:col-span-2">
-                <label htmlFor="event-title" className="label">Event Title</label>
-                <input id="event-title" className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-              </div>
-              <div>
-                <label htmlFor="event-date" className="label">Date</label>
-                <input id="event-date" type="date" className="input" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} required />
-              </div>
-              <div>
-                <label htmlFor="event-location" className="label">Location</label>
-                <input id="event-location" className="input" placeholder="City, State or Virtual" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
-              </div>
-              <div className="sm:col-span-2">
-                <label htmlFor="event-description" className="label">Description</label>
-                <textarea id="event-description" className="input resize-none" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button type="submit" disabled={submitting} className="btn-primary">{submitting ? 'Creating…' : 'Create Event'}</button>
-              <button type="button" onClick={() => setShowForm(false)} className="btn-ghost">Cancel</button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => <div key={i} className="card animate-pulse h-32" />)}
-        </div>
-      ) : events.length === 0 ? (
-        <div className="text-center py-20 text-ohio-gray">
-          <Calendar size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="font-medium">No events yet</p>
-          {isAdmin && <p className="text-sm mt-1">Create the first event above!</p>}
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {upcoming.length > 0 && (
-            <div>
-              <h2 className="text-sm font-semibold text-ohio-gray uppercase tracking-wide mb-3">Upcoming</h2>
-              <div className="space-y-4">
-                {upcoming.map((e) => <EventCard key={e.id} event={e} />)}
-              </div>
-            </div>
-          )}
-          {past.length > 0 && (
-            <div>
-              <h2 className="text-sm font-semibold text-ohio-gray uppercase tracking-wide mb-3">Past Events</h2>
-              <div className="space-y-4">
-                {past.map((e) => <EventCard key={e.id} event={e} />)}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

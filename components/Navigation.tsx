@@ -3,7 +3,7 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Users, MessageCircle, Calendar,
+  Users, MessageCircle,
   LogOut, Menu, X, Shield, Lock, Heart, BookOpen, MapPin,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -13,11 +13,11 @@ const navItems = [
   { href: '/directory', label: 'Directory', icon: Users },
   { href: '/locations', label: 'Locations', icon: MapPin },
   { href: '/messages', label: 'Messages', icon: MessageCircle },
-  { href: '/events', label: 'Events', icon: Calendar },
   { href: '/professor-young', label: 'Prof. Young Memories', icon: Heart },
   { href: '/ahp-memories', label: 'AHP Memories', icon: BookOpen },
-  // /groups is intentionally hidden until AI interest-group categorization
-  // is reliable enough (see app/(dashboard)/groups/page.tsx).
+  // Hidden routes:
+  //   /groups — paused until AI interest-group categorization is reliable
+  //   /events — paused (program not running alumni events yet)
 ];
 
 export default function Navigation() {
