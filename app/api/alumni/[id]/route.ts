@@ -35,6 +35,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       'Summary of Career Progression (AI)',
       'Networking Category (AI)',
       'Standardized Location',
+      'Standardized Metropolitan Area',
+      'Adjusted Phone Number',
       'Summarized Interest Group', // AI agent field (no "(AI)" suffix but still computed)
     ]);
     const filtered: Record<string, unknown> = {};

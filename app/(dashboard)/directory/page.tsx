@@ -22,7 +22,6 @@ export default function DirectoryPage() {
   const [search, setSearch] = useState('');
   const [yearFilter, setYearFilter] = useState(searchParams.get('year') || '');
   const [networkingFilter, setNetworkingFilter] = useState('');
-  const [interestFilter, setInterestFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState(searchParams.get('location') || '');
   const [showFilters, setShowFilters] = useState(!!(searchParams.get('year') || searchParams.get('location')));
 
@@ -61,10 +60,6 @@ export default function DirectoryPage() {
     () => Array.from(new Set(alumni.map((a) => a.networkingCategory).filter(Boolean))).sort(),
     [alumni]
   );
-  const interestGroups = useMemo(
-    () => Array.from(new Set(alumni.flatMap((a) => a.summarizedInterestGroup.split(',').map((s) => s.trim())).filter(Boolean))).sort(),
-    [alumni]
-  );
   const locations = useMemo(
     () => Array.from(new Set(alumni.map((a) => a.location).filter(Boolean))).sort(),
     [alumni]
@@ -82,18 +77,16 @@ export default function DirectoryPage() {
         a.location.toLowerCase().includes(q);
       const matchYear = !yearFilter || a.graduationYear === yearFilter;
       const matchNetworking = !networkingFilter || a.networkingCategory === networkingFilter;
-      const matchInterest = !interestFilter || a.summarizedInterestGroup.includes(interestFilter);
       const matchLocation = !locationFilter || a.location === locationFilter;
-      return matchSearch && matchYear && matchNetworking && matchInterest && matchLocation;
+      return matchSearch && matchYear && matchNetworking && matchLocation;
     });
-  }, [alumni, search, yearFilter, networkingFilter, interestFilter, locationFilter]);
+  }, [alumni, search, yearFilter, networkingFilter, locationFilter]);
 
-  const hasFilters = yearFilter || networkingFilter || interestFilter || locationFilter;
+  const hasFilters = yearFilter || networkingFilter || locationFilter;
 
   function clearFilters() {
     setYearFilter('');
     setNetworkingFilter('');
-    setInterestFilter('');
     setLocationFilter('');
   }
 
@@ -135,7 +128,7 @@ export default function DirectoryPage() {
           aria-controls="directory-filter-panel"
         >
           <Filter size={16} aria-hidden="true" />
-          Filters {hasFilters && `(${[yearFilter, networkingFilter, interestFilter, locationFilter].filter(Boolean).length})`}
+          Filters {hasFilters && `(${[yearFilter, networkingFilter, locationFilter].filter(Boolean).length})`}
         </button>
         {hasFilters && (
           <button
@@ -151,7 +144,7 @@ export default function DirectoryPage() {
 
       {/* Filter panel */}
       {showFilters && (
-        <div id="directory-filter-panel" className="card mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div id="directory-filter-panel" className="card mb-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div>
             <label htmlFor="filter-year" className="label">Graduation Year</label>
             <select id="filter-year" className="input" value={yearFilter} onChange={(e) => setYearFilter(e.target.value)}>
@@ -164,13 +157,6 @@ export default function DirectoryPage() {
             <select id="filter-networking" className="input" value={networkingFilter} onChange={(e) => setNetworkingFilter(e.target.value)}>
               <option value="">All</option>
               {networkingCategories.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="filter-interest" className="label">Interest Group</label>
-            <select id="filter-interest" className="input" value={interestFilter} onChange={(e) => setInterestFilter(e.target.value)}>
-              <option value="">All</option>
-              {interestGroups.map((g) => <option key={g} value={g}>{g}</option>)}
             </select>
           </div>
           <div>

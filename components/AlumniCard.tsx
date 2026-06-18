@@ -105,21 +105,6 @@ export default function AlumniCard({ alumni }: { alumni: Alumni }) {
         )}
       </div>
 
-      {/* Interest tags */}
-      {alumni.summarizedInterestGroup && (
-        <div className="mt-3 pt-3 border-t border-ohio-gray-medium">
-          <div className="flex flex-wrap gap-1">
-            {alumni.summarizedInterestGroup
-              .split(',')
-              .slice(0, 2)
-              .map((tag) => (
-                <span key={tag} className="badge bg-ohio-gray-light text-ohio-gray text-xs">
-                  {tag.trim()}
-                </span>
-              ))}
-          </div>
-        </div>
-      )}
     </article>
   );
 }

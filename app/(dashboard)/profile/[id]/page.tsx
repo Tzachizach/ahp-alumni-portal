@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Alumni } from '@/lib/types';
 import {
   MapPin, Briefcase, GraduationCap, Mail, Phone, Linkedin,
-  MessageCircle, ArrowLeft, Star, Award, BookOpen, Heart,
+  MessageCircle, ArrowLeft, Star, Award, BookOpen, Heart, Building2,
 } from 'lucide-react';
 
 export default function ProfilePage() {
@@ -117,8 +117,14 @@ export default function ProfilePage() {
               )}
               {alumni.location && (
                 <span className="flex items-center gap-1.5">
-                  <MapPin size={14} className="text-scarlet" />
+                  <MapPin size={14} className="text-scarlet" aria-hidden="true" />
                   {alumni.location}
+                </span>
+              )}
+              {alumni.standardizedMetropolitanArea && (
+                <span className="flex items-center gap-1.5 text-ohio-gray" title="Metropolitan area">
+                  <Building2 size={14} className="text-scarlet" aria-hidden="true" />
+                  {alumni.standardizedMetropolitanArea}
                 </span>
               )}
               {alumni.degreeEarned && (
@@ -136,9 +142,13 @@ export default function ProfilePage() {
                   <Mail size={14} /> {alumni.email}
                 </a>
               )}
-              {alumni.phone && (
-                <a href={`tel:${alumni.phone}`} className="flex items-center gap-1.5 text-sm text-scarlet hover:underline">
-                  <Phone size={14} /> {alumni.phone}
+              {(alumni.adjustedPhoneNumber || alumni.phone) && (
+                <a
+                  href={`tel:${(alumni.adjustedPhoneNumber || alumni.phone).replace(/[^+\d]/g, '')}`}
+                  className="flex items-center gap-1.5 text-sm text-scarlet hover:underline"
+                >
+                  <Phone size={14} aria-hidden="true" />
+                  {alumni.adjustedPhoneNumber || alumni.phone}
                 </a>
               )}
               {alumni.linkedIn && (
@@ -150,14 +160,6 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Interest tags */}
-            {alumni.summarizedInterestGroup && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {alumni.summarizedInterestGroup.split(',').map((tag) => (
-                  <span key={tag} className="badge bg-ohio-gray-light text-ohio-gray">{tag.trim()}</span>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>

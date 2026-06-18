@@ -61,6 +61,7 @@ function mapAlumni(record: Airtable.Record<Airtable.FieldSet>): Alumni {
     profilePhoto: photo,
     email: str(f['Email Address']),
     phone: str(f['Phone Number']),
+    adjustedPhoneNumber: str(f['Adjusted Phone Number']),
     graduationYear: f['Graduation Year'] ? String(f['Graduation Year']) : '',
     degreeEarned: str(f['Degree Earned']),
     currentJobTitle: str(f['Current Job Title']),
@@ -72,6 +73,7 @@ function mapAlumni(record: Airtable.Record<Airtable.FieldSet>): Alumni {
       const standardized = sl?.value?.trim();
       return standardized || str(f['Location']);
     })(),
+    standardizedMetropolitanArea: str(f['Standardized Metropolitan Area']),
     linkedIn: str(f['LinkedIn']),
     careerMilestones: str(f['Career Milestones']),
     summaryOfCareerProgression: str(f['Summary of Career Progression (AI)']),

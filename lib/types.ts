@@ -3,7 +3,8 @@ export interface Alumni {
   fullName: string;
   profilePhoto: string | null;
   email: string;
-  phone: string;
+  phone: string;                       // raw, as the user typed it
+  adjustedPhoneNumber: string;         // AI-cleaned format; display preference
   graduationYear: string;
   degreeEarned: string;
   currentJobTitle: string;
@@ -11,6 +12,7 @@ export interface Alumni {
   previousJobTitle: string;
   previousEmployer: string;
   location: string;
+  standardizedMetropolitanArea: string; // AI-computed MSA from location
   linkedIn: string;
   // Career
   careerMilestones: string;

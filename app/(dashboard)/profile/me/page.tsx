@@ -290,6 +290,18 @@ export default function MyProfilePage() {
             <div className="sm:col-span-2">
               {renderInput('LinkedIn URL', 'LinkedIn', 'url', 'url')}
             </div>
+            {alumni?.adjustedPhoneNumber &&
+              renderReadOnly(
+                'Phone Number (auto-formatted)',
+                alumni.adjustedPhoneNumber,
+                'This is how your phone number is displayed to other alumni — auto-formatted from what you typed above.'
+              )}
+            {alumni?.standardizedMetropolitanArea &&
+              renderReadOnly(
+                'Metropolitan Area (auto-detected)',
+                alumni.standardizedMetropolitanArea,
+                'Computed automatically from your Location above.'
+              )}
           </div>
         </div>
 
@@ -322,12 +334,6 @@ export default function MyProfilePage() {
               INTERESTS_FIELD,
               4
             )}
-            {alumni?.summarizedInterestGroup &&
-              renderReadOnly(
-                'Interest Group Tags (auto-generated)',
-                alumni.summarizedInterestGroup,
-                'These tags are generated automatically from your interests text above.'
-              )}
             {alumni?.areasOfInterestForEngagement &&
               renderReadOnly(
                 'Areas of Interest for Engagement',
