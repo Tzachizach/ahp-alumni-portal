@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Users, MessageCircle,
-  LogOut, Menu, X, Shield, Lock, Heart, BookOpen, MapPin, MessageSquare,
+  LogOut, Menu, X, Shield, Lock, Heart, BookOpen, MapPin, MessageSquare, Home,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFocusTrap } from '@/lib/useFocusTrap';
 
 const navItems = [
+  { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/directory', label: 'Directory', icon: Users },
   { href: '/locations', label: 'Locations', icon: MapPin },
   { href: '/messages', label: 'Messages', icon: MessageCircle },
@@ -62,7 +63,7 @@ export default function Navigation() {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="px-4 py-6 border-b border-ohio-gray-medium">
-        <Link href="/directory" className="flex items-center gap-3">
+        <Link href="/dashboard" className="flex items-center gap-3">
           <div className="w-10 h-10 bg-scarlet rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">AHP</span>
           </div>
@@ -137,7 +138,7 @@ export default function Navigation() {
 
       {/* Mobile top bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-ohio-gray-medium flex items-center justify-between px-4 z-20">
-        <Link href="/directory" className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-scarlet rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-xs">AHP</span>
           </div>
