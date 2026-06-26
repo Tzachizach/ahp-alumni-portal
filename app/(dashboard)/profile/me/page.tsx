@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Alumni } from '@/lib/types';
 import toast from 'react-hot-toast';
 import { Save, User, Camera, Loader2 } from 'lucide-react';
+import ProfileCompletenessBar from '@/components/ProfileCompletenessBar';
 
 const INTERESTS_FIELD = 'In the website, we can create community spaces for alums with similar interests to communicate. What are professional and personal interests you have?';
 
@@ -206,6 +207,9 @@ export default function MyProfilePage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-ohio-gray-dark">Edit My Profile</h1>
       </div>
+
+      {/* Completeness bar — shown only on the user's own profile */}
+      {alumni && <ProfileCompletenessBar alumni={alumni} />}
 
       {/* Read-only header */}
       <div className="card mb-6 flex items-center gap-5">

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Users, MessageCircle,
-  LogOut, Menu, X, Shield, Lock, Heart, BookOpen, MapPin,
+  LogOut, Menu, X, Shield, Lock, Heart, BookOpen, MapPin, MessageSquare,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFocusTrap } from '@/lib/useFocusTrap';
@@ -106,14 +106,22 @@ export default function Navigation() {
           onClick={() => setMobileOpen(false)}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-ohio-gray hover:bg-ohio-gray-light hover:text-ohio-gray-dark transition-colors"
         >
-          <Lock size={18} />
+          <Lock size={18} aria-hidden="true" />
           Change Password
+        </Link>
+        <Link
+          href="/feedback"
+          onClick={() => setMobileOpen(false)}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-ohio-gray hover:bg-ohio-gray-light hover:text-ohio-gray-dark transition-colors"
+        >
+          <MessageSquare size={18} aria-hidden="true" />
+          Send Feedback
         </Link>
         <button
           onClick={() => signOut({ callbackUrl: '/login' })}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-ohio-gray hover:bg-red-50 hover:text-scarlet transition-colors"
         >
-          <LogOut size={18} />
+          <LogOut size={18} aria-hidden="true" />
           Sign Out
         </button>
       </div>
