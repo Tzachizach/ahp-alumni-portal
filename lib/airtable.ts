@@ -95,15 +95,23 @@ function mapAlumni(record: Airtable.Record<Airtable.FieldSet>): Alumni {
 }
 
 // ─── Alumni CRUD ──────────────────────────────────────────────────────────────
+//
+// Imposter filter: any record with the "Imposter" checkbox ticked in Airtable
+// is hidden from the website entirely. The records stay in the base so admins
+// have a paper trail, but the public-facing API never returns them. Applied
+// in all three read paths below.
+
 export async function getAllAlumni(): Promise<Alumni[]> {
-  // Fetch all fields — avoids errors if some fields don't exist in the base
-  const records = await base('Alumni').select().all();
+  const records = await base('Alumni')
+    .select({ filterByFormula: 'NOT({Imposter})' })
+    .all();
   return records.map(mapAlumni);
 }
 
 export async function getAlumniById(recordId: string): Promise<Alumni | null> {
   try {
     const record = await base('Alumni').find(recordId);
+    if (record.fields['Imposter'] === true) return null;
     return mapAlumni(record);
   } catch {
     return null;
@@ -113,7 +121,7 @@ export async function getAlumniById(recordId: string): Promise<Alumni | null> {
 export async function getAlumniByEmail(email: string): Promise<Alumni | null> {
   const records = await base('Alumni')
     .select({
-      filterByFormula: `{Email Address} = '${email}'`,
+      filterByFormula: `AND({Email Address} = '${email}', NOT({Imposter}))`,
       maxRecords: 1,
     })
     .all();
