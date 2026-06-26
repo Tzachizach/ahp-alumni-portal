@@ -1,7 +1,10 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Users, MessageCircle, Star, ArrowRight, AlertCircle, ClipboardCheck } from 'lucide-react';
+import {
+  Users, MessageCircle, Star, ArrowRight, AlertCircle,
+  ClipboardCheck, BarChart3,
+} from 'lucide-react';
 import { Alumni } from '@/lib/types';
 import { computeCompleteness } from '@/lib/profileCompleteness';
 
@@ -42,6 +45,22 @@ export default function AdminDashboard() {
       completePct: Math.round(((alumni.length - incomplete) / alumni.length) * 100),
       avgPct: Math.round(sumPct / alumni.length),
     };
+  }, [alumni]);
+
+  // Group alumni by graduation year — newest first, "Unknown" pulled out.
+  const yearBreakdown = useMemo(() => {
+    const counts: Record<string, number> = {};
+    let unknown = 0;
+    for (const a of alumni) {
+      const y = a.graduationYear?.trim();
+      if (!y) unknown += 1;
+      else counts[y] = (counts[y] || 0) + 1;
+    }
+    const rows = Object.entries(counts)
+      .map(([year, count]) => ({ year, count }))
+      .sort((a, b) => Number(b.year) - Number(a.year));
+    const max = rows.reduce((m, r) => Math.max(m, r.count), 0);
+    return { rows, max, unknown };
   }, [alumni]);
 
   const cards = [
@@ -115,6 +134,56 @@ export default function AdminDashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Alumni by graduation year */}
+      <div className="card mb-8">
+        <h2 className="font-semibold text-ohio-gray-dark mb-1 flex items-center gap-2">
+          <BarChart3 size={16} className="text-scarlet" aria-hidden="true" />
+          Alumni by graduation year
+        </h2>
+        <p className="text-xs text-ohio-gray mb-4">
+          {loading
+            ? 'Loading…'
+            : `${yearBreakdown.rows.length} ${yearBreakdown.rows.length === 1 ? 'cohort' : 'cohorts'} represented${
+                yearBreakdown.unknown ? ` · ${yearBreakdown.unknown} alumni with no year recorded` : ''
+              }.`}
+        </p>
+        {!loading && yearBreakdown.rows.length === 0 ? (
+          <p className="text-sm text-ohio-gray italic">No graduation years recorded yet.</p>
+        ) : (
+          <ul className="space-y-1.5 max-h-96 overflow-y-auto pr-2">
+            {yearBreakdown.rows.map(({ year, count }) => (
+              <li key={year}>
+                <Link
+                  href={`/directory?year=${year}`}
+                  className="flex items-center gap-3 text-sm rounded px-1 py-0.5 hover:bg-ohio-gray-light transition-colors"
+                  title={`View Class of ${year} in the directory`}
+                >
+                  <span className="w-14 text-ohio-gray-dark font-medium text-right tabular-nums">
+                    {year}
+                  </span>
+                  <div className="flex-1 h-5 bg-ohio-gray-light rounded overflow-hidden">
+                    <div
+                      className="h-full bg-scarlet transition-all duration-500"
+                      style={{
+                        width: `${yearBreakdown.max > 0 ? (count / yearBreakdown.max) * 100 : 0}%`,
+                      }}
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={yearBreakdown.max}
+                      aria-valuenow={count}
+                      aria-label={`Class of ${year}: ${count} ${count === 1 ? 'alum' : 'alumni'}`}
+                    />
+                  </div>
+                  <span className="w-12 text-ohio-gray text-xs tabular-nums">
+                    {count}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Quick links */}
