@@ -30,28 +30,36 @@ export default function AdminDashboard() {
     });
   }, []);
 
-  // Completeness aggregates — computed once for the dashboard stat cards.
+  // Slice the network: completeness and the year chart only make sense for
+  // alumni; faculty / students have different essential fields.
+  const alumniOnly = useMemo(() => alumni.filter((a) => a.type === 'Alumni'), [alumni]);
+
+  // Completeness aggregates — alumni only.
   const completeness = useMemo(() => {
-    if (alumni.length === 0) return { incomplete: 0, completePct: 0, avgPct: 0 };
+    if (alumniOnly.length === 0) return { incomplete: 0, completePct: 0, avgPct: 0 };
     let incomplete = 0;
     let sumPct = 0;
-    for (const a of alumni) {
+    for (const a of alumniOnly) {
       const c = computeCompleteness(a);
       if (!c.isComplete) incomplete += 1;
       sumPct += c.pct;
     }
     return {
       incomplete,
-      completePct: Math.round(((alumni.length - incomplete) / alumni.length) * 100),
-      avgPct: Math.round(sumPct / alumni.length),
+      completePct: Math.round(((alumniOnly.length - incomplete) / alumniOnly.length) * 100),
+      avgPct: Math.round(sumPct / alumniOnly.length),
     };
-  }, [alumni]);
+  }, [alumniOnly]);
 
+
+  const facultyCount = alumni.filter((a) => a.type === 'Faculty').length;
+  const studentCount = alumni.filter((a) => a.type === 'Student').length;
 
   const cards = [
     {
-      label: 'Alumni in Airtable',
+      label: 'People in the network',
       value: alumni.length,
+      sub: `${alumniOnly.length} alumni · ${facultyCount} faculty · ${studentCount} students`,
       icon: Users,
       color: 'bg-blue-50 text-blue-600',
     },
@@ -62,7 +70,7 @@ export default function AdminDashboard() {
       color: 'bg-green-50 text-green-600',
     },
     {
-      label: 'Profiles with gaps',
+      label: 'Alumni profiles with gaps',
       value: completeness.incomplete,
       sub: `${completeness.avgPct}% avg completeness`,
       icon: AlertCircle,
@@ -121,9 +129,10 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Alumni by graduation year */}
+      {/* Alumni by graduation year — filtered to Type: Alumni so faculty / current
+          students don't show up in the cohort breakdown. */}
       <div className="mb-8">
-        <YearBreakdownChart alumni={alumni} loading={loading} />
+        <YearBreakdownChart alumni={alumniOnly} loading={loading} />
       </div>
 
       {/* Quick links */}

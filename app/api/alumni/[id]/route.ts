@@ -30,7 +30,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   try {
     const body = await req.json();
-    // Strip AI-computed and known read-only fields — Airtable rejects writes to them
+    // Strip AI-computed and admin-only fields — Airtable would reject writes to AI
+    // fields, and Type / Imposter are administrative classifications that
+    // shouldn't be alterable through the alumni edit form.
     const AI_FIELDS = new Set([
       'Summary of Career Progression (AI)',
       'Networking Category (AI)',
@@ -38,6 +40,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       'Standardized Metropolitan Area',
       'Adjusted Phone Number',
       'Summarized Interest Group', // AI agent field (no "(AI)" suffix but still computed)
+      'Type',                       // role classification — admin-managed
+      'Imposter',                   // admin-managed
     ]);
     const filtered: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(body)) {

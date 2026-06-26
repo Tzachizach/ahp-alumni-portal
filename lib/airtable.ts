@@ -55,8 +55,21 @@ function mapAlumni(record: Airtable.Record<Airtable.FieldSet>): Alumni {
   const photoArr = f['Profile Photo'] as { url: string }[] | undefined;
   const photo = photoArr && photoArr.length > 0 ? photoArr[0].url : null;
 
+  // Type single-select returns an object {id, name, color}; default to "Alumni"
+  // for records that haven't been classified yet so we never crash.
+  const typeRaw = f['Type'] as { name?: string } | string | undefined;
+  const typeName =
+    typeof typeRaw === 'string'
+      ? typeRaw
+      : typeRaw?.name || 'Alumni';
+  const type = (typeName === 'Faculty' || typeName === 'Student' ? typeName : 'Alumni') as
+    | 'Alumni'
+    | 'Faculty'
+    | 'Student';
+
   return {
     id: record.id,
+    type,
     fullName: str(f['Full Name']),
     profilePhoto: photo,
     email: str(f['Email Address']),
@@ -75,6 +88,24 @@ function mapAlumni(record: Airtable.Record<Airtable.FieldSet>): Alumni {
     })(),
     standardizedMetropolitanArea: str(f['Standardized Metropolitan Area']),
     linkedIn: str(f['LinkedIn']),
+
+    // Faculty-only
+    department: str(f['Department']),
+    facultyTitle: str(f['Faculty Title']),
+    officeLocation: str(f['Office Location']),
+    researchAreas: str(f['Research Areas']),
+
+    // Student-only
+    major: str(f['Major']),
+    expectedGraduationYear: f['Expected Graduation Year']
+      ? String(f['Expected Graduation Year'])
+      : '',
+    yearInProgram: (() => {
+      const yr = f['Year in Program'] as { name?: string } | string | undefined;
+      return typeof yr === 'string' ? yr : yr?.name || '';
+    })(),
+    showEmailToAlumni: f['Show Email to Alumni'] === true,
+
     careerMilestones: str(f['Career Milestones']),
     summaryOfCareerProgression: str(f['Summary of Career Progression (AI)']),
     professionalAchievements: str(f['Professional achievements and accomplishments']),
@@ -143,7 +174,7 @@ export interface AuthRecord {
   id: string;
   email: string;
   passwordHash: string;
-  role: 'alumni' | 'admin';
+  role: 'alumni' | 'admin' | 'faculty' | 'student';
   alumniRecordId: string;
   name: string;
   mustChangePassword: boolean;
@@ -166,7 +197,7 @@ export async function getAuthByEmail(email: string): Promise<AuthRecord | null> 
       id: records[0].id,
       email: (f['Email'] as string) || '',
       passwordHash: (f['Password Hash'] as string) || '',
-      role: ((f['Role'] as string) || 'alumni') as 'alumni' | 'admin',
+      role: ((f['Role'] as string) || 'alumni') as 'alumni' | 'admin' | 'faculty' | 'student',
       alumniRecordId: (f['Alumni Record ID'] as string) || '',
       name: (f['Name'] as string) || '',
       mustChangePassword: (f['Must Change Password'] as boolean) || false,
@@ -180,7 +211,7 @@ export async function getAuthByEmail(email: string): Promise<AuthRecord | null> 
 export async function createAuthRecord(data: {
   email: string;
   passwordHash: string;
-  role: 'alumni' | 'admin';
+  role: 'alumni' | 'admin' | 'faculty' | 'student';
   alumniRecordId: string;
   name: string;
   mustChangePassword?: boolean;
@@ -217,7 +248,7 @@ export async function getAllAuthRecords(): Promise<AuthRecord[]> {
       id: r.id,
       email: (f['Email'] as string) || '',
       passwordHash: (f['Password Hash'] as string) || '',
-      role: ((f['Role'] as string) || 'alumni') as 'alumni' | 'admin',
+      role: ((f['Role'] as string) || 'alumni') as 'alumni' | 'admin' | 'faculty' | 'student',
       alumniRecordId: (f['Alumni Record ID'] as string) || '',
       name: (f['Name'] as string) || '',
       mustChangePassword: (f['Must Change Password'] as boolean) || false,

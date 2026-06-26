@@ -32,7 +32,11 @@ export default function CompletenessReportPage() {
     fetch('/api/alumni')
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) setAlumni(data);
+        if (Array.isArray(data)) {
+          // The completeness essentials are alumni-shaped (LinkedIn, current
+          // employer, etc.) — exclude faculty and students from this report.
+          setAlumni(data.filter((a: Alumni) => a.type === 'Alumni'));
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));

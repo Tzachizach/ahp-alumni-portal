@@ -1,19 +1,34 @@
+export type PersonType = 'Alumni' | 'Faculty' | 'Student';
+
 export interface Alumni {
   id: string; // Airtable record ID
+  type: PersonType; // Alumni / Faculty / Student — drives conditional rendering
   fullName: string;
   profilePhoto: string | null;
   email: string;
   phone: string;                       // raw, as the user typed it
   adjustedPhoneNumber: string;         // AI-cleaned format; display preference
-  graduationYear: string;
+  graduationYear: string;              // Alumni only — empty for Faculty/Student
   degreeEarned: string;
-  currentJobTitle: string;
+  currentJobTitle: string;             // Alumni-specific (faculty use facultyTitle/department)
   currentEmployer: string;
   previousJobTitle: string;
   previousEmployer: string;
   location: string;
   standardizedMetropolitanArea: string; // AI-computed MSA from location
   linkedIn: string;
+
+  // Faculty-only fields (empty for non-Faculty)
+  department: string;
+  facultyTitle: string;
+  officeLocation: string;
+  researchAreas: string;
+
+  // Student-only fields (empty for non-Student)
+  major: string;
+  expectedGraduationYear: string;
+  yearInProgram: string;
+  showEmailToAlumni: boolean;          // student privacy toggle
   // Career
   careerMilestones: string;
   summaryOfCareerProgression: string;

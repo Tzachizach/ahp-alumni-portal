@@ -55,11 +55,17 @@ export default function DashboardPage() {
     [messages, myEmail]
   );
 
+  // Slice the network: alumni-only for views that don't make sense for
+  // faculty/students (cohort, year chart, top employers).
+  const alumniOnly = useMemo(() => alumni.filter((a) => a.type === 'Alumni'), [alumni]);
+
   // Personal: cohort + nearby
   const cohortCount = useMemo(() => {
-    if (!me?.graduationYear) return 0;
-    return alumni.filter((a) => a.graduationYear === me.graduationYear && a.id !== me.id).length;
-  }, [alumni, me]);
+    if (!me || me.type !== 'Alumni' || !me.graduationYear) return 0;
+    return alumniOnly.filter(
+      (a) => a.graduationYear === me.graduationYear && a.id !== me.id
+    ).length;
+  }, [alumniOnly, me]);
 
   const myStateCode = useMemo(() => (me ? parseStateCode(me.location) : null), [me]);
   const nearbyCount = useMemo(() => {
@@ -69,7 +75,11 @@ export default function DashboardPage() {
     ).length;
   }, [alumni, me, myStateCode]);
 
-  const completeness = useMemo(() => (me ? computeCompleteness(me) : null), [me]);
+  // Completeness only applies to alumni (the 6 essentials are alumni-shaped).
+  const completeness = useMemo(
+    () => (me && me.type === 'Alumni' ? computeCompleteness(me) : null),
+    [me]
+  );
 
   // Geographic snapshot: top states + top metros
   const { topStates, totalStates, topMetros } = useMemo(() => {
@@ -92,12 +102,11 @@ export default function DashboardPage() {
     return { topStates, totalStates: Object.keys(byState).length, topMetros };
   }, [alumni]);
 
-  // Program impact: top employers (case-insensitive grouping)
+  // Program impact: top employers — alumni only (faculty work at OSU; students
+  // don't have employers in the same sense).
   const { topEmployers, distinctEmployers } = useMemo(() => {
-    // Use a normalized key for grouping, but keep the most common
-    // capitalization variant as the display label.
     const groups: Record<string, { label: string; count: number; variants: Record<string, number> }> = {};
-    for (const a of alumni) {
+    for (const a of alumniOnly) {
       const raw = a.currentEmployer?.trim();
       if (!raw) continue;
       const key = raw.toLowerCase();
@@ -114,9 +123,10 @@ export default function DashboardPage() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
     return { topEmployers, distinctEmployers: Object.keys(groups).length };
-  }, [alumni]);
+  }, [alumniOnly]);
 
   const totalNetwork = alumni.length;
+  const totalAlumniOnly = alumniOnly.length;
   const maxMetroCount = topMetros[0]?.count || 0;
   const maxStateCount = topStates[0]?.count || 0;
   const maxEmployerCount = topEmployers[0]?.count || 0;
@@ -136,43 +146,53 @@ export default function DashboardPage() {
         <p className="text-ohio-gray text-sm">
           {loading
             ? 'Loading your snapshot…'
-            : `${totalNetwork} alumni in the AHP network${
-                me?.graduationYear ? ` · You're in the Class of ${me.graduationYear}` : ''
+            : `${totalNetwork} people in the AHP network${
+                me?.type === 'Alumni' && me.graduationYear
+                  ? ` · You're in the Class of ${me.graduationYear}`
+                  : me?.type === 'Faculty'
+                  ? ` · You're on the faculty`
+                  : me?.type === 'Student'
+                  ? ` · You're a current student${me.expectedGraduationYear ? ` (expected ${me.expectedGraduationYear})` : ''}`
+                  : ''
               }.`}
         </p>
       </div>
 
-      {/* 1. Personal snapshot */}
-      {me && completeness && (
+      {/* 1. Personal snapshot — cards conditionally render based on role.
+          Alumni see all 4 cards. Faculty / students see only Inbox + Near you
+          (completeness and cohort are alumni-specific). */}
+      {me && (
         <div className="card mb-6">
           <h2 className="font-semibold text-ohio-gray-dark text-sm uppercase tracking-wide mb-4">
             Your snapshot
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* Completeness */}
-            <Link
-              href="/profile/me"
-              className="border border-ohio-gray-medium rounded-lg p-3 hover:border-scarlet hover:bg-scarlet-light/30 transition-colors group"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                {completeness.isComplete ? (
-                  <CheckCircle2 size={14} className="text-green-600" aria-hidden="true" />
-                ) : (
-                  <AlertCircle size={14} className="text-scarlet" aria-hidden="true" />
-                )}
-                <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">
-                  Profile
+            {/* Completeness — alumni only */}
+            {completeness && (
+              <Link
+                href="/profile/me"
+                className="border border-ohio-gray-medium rounded-lg p-3 hover:border-scarlet hover:bg-scarlet-light/30 transition-colors group"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  {completeness.isComplete ? (
+                    <CheckCircle2 size={14} className="text-green-600" aria-hidden="true" />
+                  ) : (
+                    <AlertCircle size={14} className="text-scarlet" aria-hidden="true" />
+                  )}
+                  <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">
+                    Profile
+                  </p>
+                </div>
+                <p className="text-lg font-bold text-ohio-gray-dark">
+                  {completeness.filled} / {completeness.total} essentials
                 </p>
-              </div>
-              <p className="text-lg font-bold text-ohio-gray-dark">
-                {completeness.filled} / {completeness.total} essentials
-              </p>
-              <p className="text-xs text-ohio-gray group-hover:text-scarlet transition-colors mt-1">
-                {completeness.isComplete ? 'Profile complete' : 'Edit profile →'}
-              </p>
-            </Link>
+                <p className="text-xs text-ohio-gray group-hover:text-scarlet transition-colors mt-1">
+                  {completeness.isComplete ? 'Profile complete' : 'Edit profile →'}
+                </p>
+              </Link>
+            )}
 
-            {/* Inbox */}
+            {/* Inbox — everyone */}
             <Link
               href="/messages"
               className="border border-ohio-gray-medium rounded-lg p-3 hover:border-scarlet hover:bg-scarlet-light/30 transition-colors group"
@@ -191,26 +211,28 @@ export default function DashboardPage() {
               </p>
             </Link>
 
-            {/* Your cohort */}
-            <Link
-              href={me.graduationYear ? `/directory?year=${me.graduationYear}` : '/directory'}
-              className="border border-ohio-gray-medium rounded-lg p-3 hover:border-scarlet hover:bg-scarlet-light/30 transition-colors group"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <Users size={14} className="text-scarlet" aria-hidden="true" />
-                <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">
-                  Your cohort
+            {/* Your cohort — alumni only */}
+            {me.type === 'Alumni' && (
+              <Link
+                href={me.graduationYear ? `/directory?year=${me.graduationYear}` : '/directory'}
+                className="border border-ohio-gray-medium rounded-lg p-3 hover:border-scarlet hover:bg-scarlet-light/30 transition-colors group"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <Users size={14} className="text-scarlet" aria-hidden="true" />
+                  <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">
+                    Your cohort
+                  </p>
+                </div>
+                <p className="text-lg font-bold text-ohio-gray-dark">
+                  {cohortCount} classmate{cohortCount === 1 ? '' : 's'}
                 </p>
-              </div>
-              <p className="text-lg font-bold text-ohio-gray-dark">
-                {cohortCount} classmate{cohortCount === 1 ? '' : 's'}
-              </p>
-              <p className="text-xs text-ohio-gray group-hover:text-scarlet transition-colors mt-1">
-                {me.graduationYear ? `Class of ${me.graduationYear} →` : 'Browse directory →'}
-              </p>
-            </Link>
+                <p className="text-xs text-ohio-gray group-hover:text-scarlet transition-colors mt-1">
+                  {me.graduationYear ? `Class of ${me.graduationYear} →` : 'Browse directory →'}
+                </p>
+              </Link>
+            )}
 
-            {/* Near you */}
+            {/* Near you — everyone */}
             <Link
               href={myStateCode ? `/directory?location=${encodeURIComponent(me.location)}` : '/locations'}
               className="border border-ohio-gray-medium rounded-lg p-3 hover:border-scarlet hover:bg-scarlet-light/30 transition-colors group"
@@ -227,7 +249,7 @@ export default function DashboardPage() {
                   : 'Add your location'}
               </p>
               <p className="text-xs text-ohio-gray group-hover:text-scarlet transition-colors mt-1">
-                {myStateCode ? 'See nearby alumni →' : 'Edit profile →'}
+                {myStateCode ? 'See nearby people →' : 'Edit profile →'}
               </p>
             </Link>
           </div>
@@ -236,8 +258,8 @@ export default function DashboardPage() {
 
       {/* Two-column: class breakdown + geographic */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* 2. Class breakdown */}
-        <YearBreakdownChart alumni={alumni} loading={loading} />
+        {/* 2. Class breakdown — alumni only (faculty/students don't have grad years that count) */}
+        <YearBreakdownChart alumni={alumniOnly} loading={loading} />
 
         {/* 3. Geographic snapshot */}
         <div className="card flex flex-col">
@@ -343,7 +365,7 @@ export default function DashboardPage() {
         <p className="text-xs text-ohio-gray mb-4">
           {loading
             ? 'Loading…'
-            : `${distinctEmployers} distinct employers represented across the network.`}
+            : `${distinctEmployers} distinct employers across our alumni.`}
         </p>
         {topEmployers.length === 0 && !loading ? (
           <p className="text-sm text-ohio-gray italic">No employer information recorded yet.</p>
@@ -379,7 +401,7 @@ export default function DashboardPage() {
       {/* Footer growth chip */}
       <div className="text-center text-xs text-ohio-gray flex items-center justify-center gap-1.5">
         <TrendingUp size={12} className="text-scarlet" aria-hidden="true" />
-        The network has grown to {totalNetwork} alumni across {totalStates} states and {distinctEmployers} employers.
+        The network includes {totalAlumniOnly} alumni, plus faculty and current students, across {totalStates} states and {distinctEmployers} employers.
       </div>
     </div>
   );

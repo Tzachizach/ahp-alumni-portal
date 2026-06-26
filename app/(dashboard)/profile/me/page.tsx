@@ -202,6 +202,112 @@ export default function MyProfilePage() {
     </div>
   );
 
+  // Faculty and students aren't expected to use the alumni edit form. They
+  // get a read-only view of their info and a note pointing them to the
+  // appropriate program contact for changes. Proper role-specific edit
+  // forms can come in a later iteration.
+  if (alumni && alumni.type !== 'Alumni') {
+    return (
+      <div className="max-w-2xl mx-auto py-6">
+        <h1 className="text-2xl font-bold text-ohio-gray-dark mb-1">My Profile</h1>
+        <p className="text-sm text-ohio-gray mb-6">
+          Signed in as {alumni.fullName} ({alumni.type})
+        </p>
+
+        <div className="card bg-scarlet-light/30 border-scarlet-light mb-6">
+          <h2 className="font-semibold text-ohio-gray-dark mb-2">
+            Your {alumni.type.toLowerCase()} profile is managed by the program
+          </h2>
+          <p className="text-sm text-ohio-gray-dark mb-3">
+            {alumni.type === 'Faculty'
+              ? 'Faculty profiles are maintained through the program office. To update your department, title, office location, or research areas, please contact the program director.'
+              : 'Student profiles are maintained through the program. To update your major, expected graduation year, or year in program, please contact your program advisor. You can change whether your email is visible to alumni by contacting the program too.'}
+          </p>
+          <p className="text-sm">
+            <a
+              href="mailto:tzachi.zach@gmail.com"
+              className="text-scarlet font-medium hover:underline"
+            >
+              Email the program director →
+            </a>
+          </p>
+        </div>
+
+        <div className="card">
+          <h2 className="font-semibold text-ohio-gray-dark mb-3">Your information on file</h2>
+          <div className="space-y-3 text-sm">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">Email</p>
+              <p className="text-ohio-gray-dark">{alumni.email || '—'}</p>
+            </div>
+            {alumni.adjustedPhoneNumber || alumni.phone ? (
+              <div>
+                <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">Phone</p>
+                <p className="text-ohio-gray-dark">{alumni.adjustedPhoneNumber || alumni.phone}</p>
+              </div>
+            ) : null}
+            {alumni.location && (
+              <div>
+                <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">Location</p>
+                <p className="text-ohio-gray-dark">{alumni.location}</p>
+              </div>
+            )}
+            {alumni.type === 'Faculty' && (
+              <>
+                {alumni.department && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">Department</p>
+                    <p className="text-ohio-gray-dark">{alumni.department}</p>
+                  </div>
+                )}
+                {alumni.facultyTitle && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">Title</p>
+                    <p className="text-ohio-gray-dark">{alumni.facultyTitle}</p>
+                  </div>
+                )}
+                {alumni.officeLocation && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">Office</p>
+                    <p className="text-ohio-gray-dark">{alumni.officeLocation}</p>
+                  </div>
+                )}
+              </>
+            )}
+            {alumni.type === 'Student' && (
+              <>
+                {alumni.major && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">Major</p>
+                    <p className="text-ohio-gray-dark">{alumni.major}</p>
+                  </div>
+                )}
+                {alumni.yearInProgram && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">Year in Program</p>
+                    <p className="text-ohio-gray-dark">{alumni.yearInProgram}</p>
+                  </div>
+                )}
+                {alumni.expectedGraduationYear && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">Expected Graduation</p>
+                    <p className="text-ohio-gray-dark">{alumni.expectedGraduationYear}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-ohio-gray font-semibold">
+                    Email visible to alumni
+                  </p>
+                  <p className="text-ohio-gray-dark">{alumni.showEmailToAlumni ? 'Yes' : 'No'}</p>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">

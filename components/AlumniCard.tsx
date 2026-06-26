@@ -63,27 +63,64 @@ export default function AlumniCard({ alumni }: { alumni: Alumni }) {
               {alumni.fullName}
             </Link>
           </h3>
-          {alumni.graduationYear && (
-            <button
-              type="button"
-              onClick={() => router.push(`/directory?year=${alumni.graduationYear}`)}
-              className="badge bg-scarlet-light text-scarlet mt-1 hover:bg-scarlet hover:text-white transition-colors cursor-pointer relative z-10"
-              aria-label={`Filter directory by Class of ${alumni.graduationYear}`}
-            >
-              Class of {alumni.graduationYear}
-            </button>
-          )}
+          {/* Role-aware sub-line. Alumni see "Class of YYYY", faculty/students
+              get a typed badge plus their department / year. */}
+          <div className="flex flex-wrap items-center gap-1 mt-1">
+            {alumni.type === 'Faculty' && (
+              <span className="badge bg-blue-100 text-blue-800 relative z-10">Faculty</span>
+            )}
+            {alumni.type === 'Student' && (
+              <span className="badge bg-green-100 text-green-800 relative z-10">Student</span>
+            )}
+            {alumni.type === 'Alumni' && alumni.graduationYear && (
+              <button
+                type="button"
+                onClick={() => router.push(`/directory?year=${alumni.graduationYear}`)}
+                className="badge bg-scarlet-light text-scarlet hover:bg-scarlet hover:text-white transition-colors cursor-pointer relative z-10"
+                aria-label={`Filter directory by Class of ${alumni.graduationYear}`}
+              >
+                Class of {alumni.graduationYear}
+              </button>
+            )}
+            {alumni.type === 'Faculty' && alumni.department && (
+              <span className="text-xs text-ohio-gray truncate">{alumni.department}</span>
+            )}
+            {alumni.type === 'Student' && (alumni.yearInProgram || alumni.expectedGraduationYear) && (
+              <span className="text-xs text-ohio-gray truncate">
+                {[alumni.yearInProgram, alumni.expectedGraduationYear && `'${alumni.expectedGraduationYear.slice(-2)}`]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Details */}
       <div className="space-y-1.5 flex-1">
-        {(alumni.currentJobTitle || alumni.currentEmployer) && (
+        {/* Career line — alumni show current title/employer, faculty show their
+            title (kept separate from alumni job title in the schema). Students
+            show their major if recorded. */}
+        {alumni.type === 'Alumni' && (alumni.currentJobTitle || alumni.currentEmployer) && (
           <div className="flex items-start gap-2 text-sm text-ohio-gray">
             <Briefcase size={14} className="flex-shrink-0 mt-0.5 text-scarlet" aria-hidden="true" />
             <span className="truncate">
               {[alumni.currentJobTitle, alumni.currentEmployer].filter(Boolean).join(' · ')}
             </span>
+          </div>
+        )}
+        {alumni.type === 'Faculty' && (alumni.facultyTitle || alumni.officeLocation) && (
+          <div className="flex items-start gap-2 text-sm text-ohio-gray">
+            <Briefcase size={14} className="flex-shrink-0 mt-0.5 text-scarlet" aria-hidden="true" />
+            <span className="truncate">
+              {[alumni.facultyTitle, alumni.officeLocation].filter(Boolean).join(' · ')}
+            </span>
+          </div>
+        )}
+        {alumni.type === 'Student' && alumni.major && (
+          <div className="flex items-start gap-2 text-sm text-ohio-gray">
+            <Briefcase size={14} className="flex-shrink-0 mt-0.5 text-scarlet" aria-hidden="true" />
+            <span className="truncate">{alumni.major}</span>
           </div>
         )}
         {alumni.location && (

@@ -15,24 +15,29 @@ function shuffle<T>(arr: T[]): T[] {
   return out;
 }
 
+type TypeFilter = '' | 'Alumni' | 'Faculty' | 'Student';
+
 export default function DirectoryPage() {
   const searchParams = useSearchParams();
   const [alumni, setAlumni] = useState<Alumni[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>((searchParams.get('type') as TypeFilter) || '');
   const [yearFilter, setYearFilter] = useState(searchParams.get('year') || '');
   const [networkingFilter, setNetworkingFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState(searchParams.get('location') || '');
-  const [showFilters, setShowFilters] = useState(!!(searchParams.get('year') || searchParams.get('location')));
+  const [showFilters, setShowFilters] = useState(!!(searchParams.get('year') || searchParams.get('location') || searchParams.get('type')));
 
   const [error, setError] = useState('');
 
   useEffect(() => {
     const year = searchParams.get('year') || '';
     const location = searchParams.get('location') || '';
+    const type = (searchParams.get('type') as TypeFilter) || '';
     setYearFilter(year);
     setLocationFilter(location);
-    if (year || location) setShowFilters(true);
+    setTypeFilter(type);
+    if (year || location || type) setShowFilters(true);
   }, [searchParams]);
 
   useEffect(() => {
@@ -74,17 +79,23 @@ export default function DirectoryPage() {
         a.currentEmployer.toLowerCase().includes(q) ||
         a.currentJobTitle.toLowerCase().includes(q) ||
         a.professionalAreasOfExpertise.toLowerCase().includes(q) ||
-        a.location.toLowerCase().includes(q);
+        a.location.toLowerCase().includes(q) ||
+        // Match on the role-specific fields too so a search for "accounting"
+        // finds both alumni in accounting jobs AND faculty in the accounting dept.
+        a.department.toLowerCase().includes(q) ||
+        a.major.toLowerCase().includes(q);
+      const matchType = !typeFilter || a.type === typeFilter;
       const matchYear = !yearFilter || a.graduationYear === yearFilter;
       const matchNetworking = !networkingFilter || a.networkingCategory === networkingFilter;
       const matchLocation = !locationFilter || a.location === locationFilter;
-      return matchSearch && matchYear && matchNetworking && matchLocation;
+      return matchSearch && matchType && matchYear && matchNetworking && matchLocation;
     });
-  }, [alumni, search, yearFilter, networkingFilter, locationFilter]);
+  }, [alumni, search, typeFilter, yearFilter, networkingFilter, locationFilter]);
 
-  const hasFilters = yearFilter || networkingFilter || locationFilter;
+  const hasFilters = typeFilter || yearFilter || networkingFilter || locationFilter;
 
   function clearFilters() {
+    setTypeFilter('');
     setYearFilter('');
     setNetworkingFilter('');
     setLocationFilter('');
@@ -94,9 +105,11 @@ export default function DirectoryPage() {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ohio-gray-dark">Alumni Directory</h1>
+        <h1 className="text-2xl font-bold text-ohio-gray-dark">Directory</h1>
         <p className="text-ohio-gray mt-1">
-          {loading ? 'Loading…' : `${filtered.length} of ${alumni.length} alumni`}
+          {loading
+            ? 'Loading…'
+            : `${filtered.length} of ${alumni.length} people · alumni, faculty, and students`}
         </p>
       </div>
 
@@ -128,7 +141,7 @@ export default function DirectoryPage() {
           aria-controls="directory-filter-panel"
         >
           <Filter size={16} aria-hidden="true" />
-          Filters {hasFilters && `(${[yearFilter, networkingFilter, locationFilter].filter(Boolean).length})`}
+          Filters {hasFilters && `(${[typeFilter, yearFilter, networkingFilter, locationFilter].filter(Boolean).length})`}
         </button>
         {hasFilters && (
           <button
@@ -144,7 +157,16 @@ export default function DirectoryPage() {
 
       {/* Filter panel */}
       {showFilters && (
-        <div id="directory-filter-panel" className="card mb-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div id="directory-filter-panel" className="card mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div>
+            <label htmlFor="filter-type" className="label">Role</label>
+            <select id="filter-type" className="input" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}>
+              <option value="">All roles</option>
+              <option value="Alumni">Alumni</option>
+              <option value="Faculty">Faculty</option>
+              <option value="Student">Students</option>
+            </select>
+          </div>
           <div>
             <label htmlFor="filter-year" className="label">Graduation Year</label>
             <select id="filter-year" className="input" value={yearFilter} onChange={(e) => setYearFilter(e.target.value)}>
