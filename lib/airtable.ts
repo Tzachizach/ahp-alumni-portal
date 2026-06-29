@@ -174,7 +174,7 @@ export interface AuthRecord {
   id: string;
   email: string;
   passwordHash: string;
-  role: 'alumni' | 'admin' | 'faculty' | 'student';
+  role: 'alumni' | 'admin' | 'faculty' | 'student' | 'staff';
   alumniRecordId: string;
   name: string;
   mustChangePassword: boolean;
@@ -197,7 +197,7 @@ export async function getAuthByEmail(email: string): Promise<AuthRecord | null> 
       id: records[0].id,
       email: (f['Email'] as string) || '',
       passwordHash: (f['Password Hash'] as string) || '',
-      role: ((f['Role'] as string) || 'alumni') as 'alumni' | 'admin' | 'faculty' | 'student',
+      role: ((f['Role'] as string) || 'alumni') as 'alumni' | 'admin' | 'faculty' | 'student' | 'staff',
       alumniRecordId: (f['Alumni Record ID'] as string) || '',
       name: (f['Name'] as string) || '',
       mustChangePassword: (f['Must Change Password'] as boolean) || false,
@@ -242,7 +242,7 @@ export async function createAuthRecord(data: {
     id: record.id,
     email: (f['Email'] as string) || '',
     passwordHash: (f['Password Hash'] as string) || '',
-    role: ((f['Role'] as string) || 'alumni') as 'alumni' | 'admin' | 'staff',
+    role: ((f['Role'] as string) || 'alumni') as 'alumni' | 'admin' | 'faculty' | 'student' | 'staff',
     alumniRecordId: (f['Alumni Record ID'] as string) || '',
     name: (f['Name'] as string) || '',
     mustChangePassword: (f['Must Change Password'] as boolean) || false,
@@ -261,7 +261,7 @@ export async function getAllAuthRecords(): Promise<AuthRecord[]> {
       id: r.id,
       email: (f['Email'] as string) || '',
       passwordHash: (f['Password Hash'] as string) || '',
-      role: ((f['Role'] as string) || 'alumni') as 'alumni' | 'admin' | 'faculty' | 'student',
+      role: ((f['Role'] as string) || 'alumni') as 'alumni' | 'admin' | 'faculty' | 'student' | 'staff',
       alumniRecordId: (f['Alumni Record ID'] as string) || '',
       name: (f['Name'] as string) || '',
       mustChangePassword: (f['Must Change Password'] as boolean) || false,
