@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getAlumniById, updateAlumni } from '@/lib/airtable';
+import { canAccessAdmin } from '@/lib/permissions';
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
@@ -23,7 +24,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   // Ensure user can only edit their own profile (unless admin)
   const userAlumniId = (session.user as { alumniRecordId?: string }).alumniRecordId;
-  const isAdmin = (session.user as { role?: string }).role === 'admin';
+  const isAdmin = canAccessAdmin((session.user as { role?: string }).role);
   if (!isAdmin && userAlumniId !== params.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }

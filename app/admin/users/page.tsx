@@ -9,7 +9,7 @@ interface AuthRecord {
   id: string;
   email: string;
   name: string;
-  role: 'alumni' | 'admin';
+  role: 'alumni' | 'admin' | 'staff' | 'faculty' | 'student';
   alumniRecordId: string;
   alumniName: string;
 }
@@ -26,7 +26,8 @@ export default function UsersAdminPage() {
     alumniRecordId: '',
     email: '',
     password: '',
-    role: 'alumni' as 'alumni' | 'admin',
+    name: '',
+    role: 'alumni' as 'alumni' | 'admin' | 'staff',
   });
 
   // Password reset
@@ -75,15 +76,23 @@ export default function UsersAdminPage() {
     setSubmitting(true);
     try {
       const selected = alumni.find((a) => a.id === form.alumniRecordId);
+      const isStaff = form.role === 'staff';
+      const displayName = isStaff ? (form.name || form.email) : (selected?.fullName || form.email);
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, name: selected?.fullName || form.email }),
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          role: form.role,
+          alumniRecordId: isStaff ? '' : form.alumniRecordId,
+          name: displayName,
+        }),
       });
       if (!res.ok) throw new Error();
       const record = await res.json();
-      setUsers((prev) => [...prev, { ...record, alumniName: selected?.fullName || form.email }]);
-      setForm({ alumniRecordId: '', email: '', password: '', role: 'alumni' });
+      setUsers((prev) => [...prev, { ...record, alumniName: displayName }]);
+      setForm({ alumniRecordId: '', email: '', password: '', name: '', role: 'alumni' });
       setShowForm(false);
       toast.success('Account created!');
     } catch {
@@ -195,21 +204,39 @@ export default function UsersAdminPage() {
           <form onSubmit={handleCreate} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label htmlFor="create-alumni" className="label">Link to Alumni Record</label>
-                <select
-                  id="create-alumni"
-                  className="input"
-                  value={form.alumniRecordId}
-                  onChange={(e) => handleAlumniSelect(e.target.value)}
-                >
-                  <option value="">Select alumni…</option>
-                  {alumni
-                    .filter((a) => !existingIds.has(a.id))
-                    .sort((a, b) => a.fullName.localeCompare(b.fullName))
-                    .map((a) => (
-                      <option key={a.id} value={a.id}>{a.fullName} ({a.email})</option>
-                    ))}
-                </select>
+                {form.role === 'staff' ? (
+                  <>
+                    <label htmlFor="create-staff-name" className="label">Staff Name</label>
+                    <input
+                      id="create-staff-name"
+                      type="text"
+                      className="input"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="e.g. Jane Smith"
+                      autoComplete="off"
+                    />
+                    <p className="text-xs text-ohio-gray mt-1">Staff have admin access but no directory profile.</p>
+                  </>
+                ) : (
+                  <>
+                    <label htmlFor="create-alumni" className="label">Link to Alumni Record</label>
+                    <select
+                      id="create-alumni"
+                      className="input"
+                      value={form.alumniRecordId}
+                      onChange={(e) => handleAlumniSelect(e.target.value)}
+                    >
+                      <option value="">Select alumni…</option>
+                      {alumni
+                        .filter((a) => !existingIds.has(a.id))
+                        .sort((a, b) => a.fullName.localeCompare(b.fullName))
+                        .map((a) => (
+                          <option key={a.id} value={a.id}>{a.fullName} ({a.email})</option>
+                        ))}
+                    </select>
+                  </>
+                )}
               </div>
               <div>
                 <label htmlFor="create-email" className="label">Login Email</label>
@@ -221,9 +248,10 @@ export default function UsersAdminPage() {
               </div>
               <div>
                 <label htmlFor="create-role" className="label">Role</label>
-                <select id="create-role" className="input" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as 'alumni' | 'admin' })}>
-                  <option value="alumni">Alumni</option>
+                <select id="create-role" className="input" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as 'alumni' | 'admin' | 'staff' })}>
+                  <option value="alumni">User</option>
                   <option value="admin">Admin</option>
+                  <option value="staff">Staff (admin, no directory profile)</option>
                 </select>
               </div>
             </div>
@@ -291,9 +319,15 @@ export default function UsersAdminPage() {
                     </td>
                     <td className="px-4 py-3 text-ohio-gray">{user.email}</td>
                     <td className="px-4 py-3">
-                      <span className={`badge ${user.role === 'admin' ? 'bg-scarlet text-white' : 'bg-ohio-gray-light text-ohio-gray'} flex items-center gap-1 w-fit`}>
-                        {user.role === 'admin' ? <Shield size={10} /> : <User size={10} />}
-                        {user.role}
+                      <span className={`badge ${
+                        user.role === 'admin'
+                          ? 'bg-scarlet text-white'
+                          : user.role === 'staff'
+                          ? 'bg-ohio-gray-dark text-white'
+                          : 'bg-ohio-gray-light text-ohio-gray'
+                      } flex items-center gap-1 w-fit`}>
+                        {user.role === 'admin' || user.role === 'staff' ? <Shield size={10} /> : <User size={10} />}
+                        {user.role === 'admin' ? 'Admin' : user.role === 'staff' ? 'Staff' : 'User'}
                       </span>
                     </td>
                     <td className="px-4 py-3">

@@ -5,10 +5,11 @@ import {
   getAllAuthRecords, createAuthRecord, deleteAuthRecord, getAllAlumni,
 } from '@/lib/airtable';
 import bcrypt from 'bcryptjs';
+import { canAccessAdmin } from '@/lib/permissions';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function requireAdmin(session: any) {
-  return session?.user?.role === 'admin';
+  return canAccessAdmin(session?.user?.role);
 }
 
 export async function GET() {

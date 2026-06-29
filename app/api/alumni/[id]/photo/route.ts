@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getAlumniById, updateAlumni } from '@/lib/airtable';
+import { canAccessAdmin } from '@/lib/permissions';
 
 // Airtable attachment limits
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -17,7 +18,7 @@ export async function POST(
 
   // Only the profile owner or an admin can change the photo
   const userAlumniId = (session.user as { alumniRecordId?: string }).alumniRecordId;
-  const isAdmin = (session.user as { role?: string }).role === 'admin';
+  const isAdmin = canAccessAdmin((session.user as { role?: string }).role);
   if (!isAdmin && userAlumniId !== params.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }

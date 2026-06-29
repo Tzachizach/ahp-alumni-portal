@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createMessage, getAllAuthRecords } from '@/lib/airtable';
+import { canAccessAdmin } from '@/lib/permissions';
 
 const VALID_CATEGORIES = new Set(['Suggestion', 'Comment', 'Bug', 'Compliment']);
 
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
   let admins;
   try {
     const allAuth = await getAllAuthRecords();
-    admins = allAuth.filter((a) => a.role === 'admin' && a.email);
+    admins = allAuth.filter((a) => canAccessAdmin(a.role) && a.email);
   } catch (err) {
     console.error('[Feedback] Failed to load admins:', err);
     return NextResponse.json(

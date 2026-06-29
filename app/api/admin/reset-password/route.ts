@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { updateAuthPassword } from '@/lib/airtable';
+import { canAccessAdmin } from '@/lib/permissions';
 import bcrypt from 'bcryptjs';
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-  const isAdmin = (session?.user as { role?: string })?.role === 'admin';
+  const isAdmin = canAccessAdmin((session?.user as { role?: string })?.role);
   if (!session || !isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   try {

@@ -211,25 +211,38 @@ export async function getAuthByEmail(email: string): Promise<AuthRecord | null> 
 export async function createAuthRecord(data: {
   email: string;
   passwordHash: string;
-  role: 'alumni' | 'admin' | 'faculty' | 'student';
+  role: 'alumni' | 'admin' | 'faculty' | 'student' | 'staff';
   alumniRecordId: string;
   name: string;
   mustChangePassword?: boolean;
 }): Promise<AuthRecord> {
-  const record = await base('Auth').create({
-    Email: data.email,
-    'Password Hash': data.passwordHash,
-    Role: data.role,
-    'Alumni Record ID': data.alumniRecordId,
-    Name: data.name,
-    'Must Change Password': data.mustChangePassword ?? false,
-  });
+  // `typecast: true` lets Airtable auto-create a missing single-select option
+  // for Role. The base ships with only 'alumni' and 'admin'; this means the
+  // first 'staff' account creates the option automatically instead of erroring.
+  // The array form of create() is used because its type signature reliably
+  // accepts the options argument across airtable@0.12.x.
+  const records = await base('Auth').create(
+    [
+      {
+        fields: {
+          Email: data.email,
+          'Password Hash': data.passwordHash,
+          Role: data.role,
+          'Alumni Record ID': data.alumniRecordId,
+          Name: data.name,
+          'Must Change Password': data.mustChangePassword ?? false,
+        },
+      },
+    ],
+    { typecast: true },
+  );
+  const record = records[0];
   const f = record.fields as Record<string, unknown>;
   return {
     id: record.id,
     email: (f['Email'] as string) || '',
     passwordHash: (f['Password Hash'] as string) || '',
-    role: ((f['Role'] as string) || 'alumni') as 'alumni' | 'admin',
+    role: ((f['Role'] as string) || 'alumni') as 'alumni' | 'admin' | 'staff',
     alumniRecordId: (f['Alumni Record ID'] as string) || '',
     name: (f['Name'] as string) || '',
     mustChangePassword: (f['Must Change Password'] as boolean) || false,

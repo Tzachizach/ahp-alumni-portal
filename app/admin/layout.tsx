@@ -2,13 +2,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Navigation from '@/components/Navigation';
+import { canAccessAdmin } from '@/lib/permissions';
 
 export const metadata = { title: 'Admin' };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect('/login');
-  if ((session.user as { role?: string })?.role !== 'admin') redirect('/directory');
+  if (!canAccessAdmin((session.user as { role?: string })?.role)) redirect('/directory');
 
   return (
     <div className="min-h-screen bg-ohio-gray-light">

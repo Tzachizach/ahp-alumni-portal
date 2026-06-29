@@ -27,7 +27,7 @@ type EditableFields = {
 type FieldKey = keyof EditableFields;
 
 export default function MyProfilePage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const alumniId = (session?.user as { alumniRecordId?: string })?.alumniRecordId;
 
   const [alumni, setAlumni] = useState<Alumni | null>(null);
@@ -194,6 +194,23 @@ export default function MyProfilePage() {
       </div>
     );
   };
+
+  // Staff/admin accounts that aren't directory members have no personal
+  // profile to edit. (The nav hides this link for them; this covers a direct
+  // visit so the page doesn't spin forever.)
+  if (status !== 'loading' && !alumniId) {
+    return (
+      <div className="max-w-2xl mx-auto py-6">
+        <div className="card text-center">
+          <h1 className="text-xl font-bold text-ohio-gray-dark mb-2">No directory profile</h1>
+          <p className="text-ohio-gray">
+            Your account has admin access but isn&apos;t listed in the alumni directory,
+            so there&apos;s no personal profile to edit. Use the Admin Panel to manage the network.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) return (
     <div className="animate-pulse space-y-6">

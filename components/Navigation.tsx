@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFocusTrap } from '@/lib/useFocusTrap';
+import { canAccessAdmin } from '@/lib/permissions';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
@@ -25,7 +26,11 @@ export default function Navigation() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const isAdmin = (session?.user as { role?: string })?.role === 'admin';
+  const role = (session?.user as { role?: string })?.role;
+  const isAdmin = canAccessAdmin(role);
+  // Staff are administrators who aren't directory members, so they have no
+  // personal profile to link to.
+  const isStaff = role === 'staff';
 
   // Trap focus inside the mobile drawer when it is open and restore focus
   // to the hamburger button on close (WCAG 4.1.2 dialog pattern).
@@ -89,19 +94,32 @@ export default function Navigation() {
 
       {/* User info + sign out */}
       <div className="px-3 py-4 border-t border-ohio-gray-medium">
-        <Link
-          href="/profile/me"
-          onClick={() => setMobileOpen(false)}
-          className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-ohio-gray-light transition-colors mb-2"
-        >
-          <div className="w-8 h-8 rounded-full bg-scarlet flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-            {session?.user?.name?.charAt(0) || '?'}
+        {isStaff ? (
+          // Staff have no directory profile, so this is informational only.
+          <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2">
+            <div className="w-8 h-8 rounded-full bg-scarlet flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              {session?.user?.name?.charAt(0) || '?'}
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-sm font-medium text-ohio-gray-dark truncate">{session?.user?.name}</p>
+              <p className="text-xs text-ohio-gray truncate">{session?.user?.email}</p>
+            </div>
           </div>
-          <div className="overflow-hidden">
-            <p className="text-sm font-medium text-ohio-gray-dark truncate">{session?.user?.name}</p>
-            <p className="text-xs text-ohio-gray truncate">{session?.user?.email}</p>
-          </div>
-        </Link>
+        ) : (
+          <Link
+            href="/profile/me"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-ohio-gray-light transition-colors mb-2"
+          >
+            <div className="w-8 h-8 rounded-full bg-scarlet flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              {session?.user?.name?.charAt(0) || '?'}
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-sm font-medium text-ohio-gray-dark truncate">{session?.user?.name}</p>
+              <p className="text-xs text-ohio-gray truncate">{session?.user?.email}</p>
+            </div>
+          </Link>
+        )}
         <Link
           href="/profile/change-password"
           onClick={() => setMobileOpen(false)}
