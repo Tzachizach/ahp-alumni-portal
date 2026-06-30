@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import AlumniCard from '@/components/AlumniCard';
 import { Alumni } from '@/lib/types';
 import { Search, Filter, X } from 'lucide-react';
+import { parseStateCode, STATE_CODE_TO_NAME } from '@/lib/usStates';
 
 // Fisher–Yates shuffle — returns a new randomly ordered array
 function shuffle<T>(arr: T[]): T[] {
@@ -65,8 +66,11 @@ export default function DirectoryPage() {
     () => Array.from(new Set(alumni.map((a) => a.networkingCategory).filter(Boolean))).sort(),
     [alumni]
   );
-  const locations = useMemo(
-    () => Array.from(new Set(alumni.map((a) => a.location).filter(Boolean))).sort(),
+  // Location filter options come from the standardized metropolitan area so the
+  // dropdown is clean — one "Columbus, OH" entry instead of "Columbus",
+  // "Columbus, Ohio", etc.
+  const metros = useMemo(
+    () => Array.from(new Set(alumni.map((a) => a.standardizedMetropolitanArea).filter(Boolean))).sort(),
     [alumni]
   );
 
@@ -87,7 +91,13 @@ export default function DirectoryPage() {
       const matchType = !typeFilter || a.type === typeFilter;
       const matchYear = !yearFilter || a.graduationYear === yearFilter;
       const matchNetworking = !networkingFilter || a.networkingCategory === networkingFilter;
-      const matchLocation = !locationFilter || a.location === locationFilter;
+      // Filter by standardized metro area. Also accept a state name (the
+      // dashboard "Top states" / "Near you" cards link in with one) and match it
+      // against the alum's state so those deep links keep working.
+      const matchLocation =
+        !locationFilter ||
+        a.standardizedMetropolitanArea === locationFilter ||
+        STATE_CODE_TO_NAME[parseStateCode(a.location) ?? ''] === locationFilter;
       return matchSearch && matchType && matchYear && matchNetworking && matchLocation;
     });
   }, [alumni, search, typeFilter, yearFilter, networkingFilter, locationFilter]);
@@ -185,7 +195,7 @@ export default function DirectoryPage() {
             <label htmlFor="filter-location" className="label">Location</label>
             <select id="filter-location" className="input" value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)}>
               <option value="">All locations</option>
-              {locations.map((l) => <option key={l} value={l}>{l}</option>)}
+              {metros.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
         </div>

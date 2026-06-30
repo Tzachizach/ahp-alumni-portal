@@ -234,7 +234,7 @@ export default function DashboardPage() {
 
             {/* Near you — everyone */}
             <Link
-              href={myStateCode ? `/directory?location=${encodeURIComponent(me.location)}` : '/locations'}
+              href={myStateCode ? `/directory?location=${encodeURIComponent(STATE_CODE_TO_NAME[myStateCode])}` : '/locations'}
               className="border border-ohio-gray-medium rounded-lg p-3 hover:border-scarlet hover:bg-scarlet-light/30 transition-colors group"
             >
               <div className="flex items-center gap-2 mb-1">
